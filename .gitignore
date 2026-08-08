@@ -5,5 +5,8 @@ build/
 compile_commands.json
 .cache/
 
+# imgui runtime state
+imgui.ini
+
 # macOS
 .DS_Store

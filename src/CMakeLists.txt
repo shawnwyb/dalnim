@@ -1,4 +1,5 @@
 add_subdirectory(core)
+add_subdirectory(render)
 
 add_executable(dalnim main.cpp)
-target_link_libraries(dalnim PRIVATE dalnim_core)
+target_link_libraries(dalnim PRIVATE dalnim_render)

@@ -1,6 +1,5 @@
-#include <iostream>
+#include "render/app.hpp"
 
 int main() {
-    std::cout << "Hello from dalnim!\n";
-    return 0;
+    return dalnim::run_app();
 }
