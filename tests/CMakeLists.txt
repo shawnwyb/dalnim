@@ -11,6 +11,7 @@ FetchContent_MakeAvailable(doctest)
 add_executable(dalnim_tests
     test_main.cpp
     test_timeline.cpp
+    test_event.cpp
 )
 target_link_libraries(dalnim_tests PRIVATE doctest::doctest dalnim_core)
 
