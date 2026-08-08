@@ -39,5 +39,6 @@ target_link_libraries(dalnim_imgui PUBLIC SDL3::SDL3-static)
 
 add_library(dalnim_render STATIC
     app.cpp
+    camera.cpp
 )
 target_link_libraries(dalnim_render PUBLIC dalnim_core PRIVATE dalnim_imgui)

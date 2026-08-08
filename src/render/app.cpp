@@ -14,6 +14,7 @@
 #include "core/algos/registry.hpp"
 #include "core/layout.hpp"
 #include "core/parse.hpp"
+#include "render/camera.hpp"
 
 namespace dalnim {
 namespace {
@@ -70,18 +71,8 @@ namespace {
         state.playing = true;
     }
 
-    // Shrinks the row until it fits the window, never enlarging past its natural size.
-    float fit_scale(std::size_t count, float window_width) {
-        if (count == 0) {
-            return 1.0f;
-        }
-        const float span = static_cast<float>(count - 1) * static_cast<float>(kBoxSpacing) + kBoxUnits;
-        const float usable = window_width - 2.0f * kSideMargin;
-        const float scale = usable / span;
-        if (scale >= 1.0f) {
-            return 1.0f;
-        }
-        return scale < kMinScale ? kMinScale : scale;
+    double row_span(std::size_t count) {
+        return count == 0 ? 0.0 : static_cast<double>(count - 1) * kBoxSpacing + kBoxUnits;
     }
 
     // Where a value sits between the smallest and largest on screen, 0..1.
@@ -101,13 +92,11 @@ namespace {
         }
 
         const ImVec2 screen = ImGui::GetIO().DisplaySize;
-        const float scale = fit_scale(count, screen.x);
-        const float width = kBoxUnits * scale;
-        const float span = (static_cast<float>(count - 1) * static_cast<float>(kBoxSpacing) + kBoxUnits) * scale;
-        const float origin_x = (screen.x - span) * 0.5f;
+        const Camera camera = fit_row(row_span(count), screen.x, kSideMargin, kMinScale);
+        const float width = camera.length(kBoxUnits);
         const float baseline = screen.y - kBottomMargin;
         const float tallest = baseline - kTopMargin;
-        const float font_size = ImGui::GetFontSize() * scale;
+        const float font_size = ImGui::GetFontSize() * camera.scale;
 
         const auto bounds = std::minmax_element(state.values.begin(), state.values.end());
         const int lowest = *bounds.first;
@@ -121,7 +110,7 @@ namespace {
             const bool lit = comparing != nullptr &&
                              (comparing->box_a == i || comparing->box_b == i);
 
-            const float x = origin_x + static_cast<float>(state.anim.x[i].sample(state.t)) * scale;
+            const float x = camera.x(state.anim.x[i].sample(state.t));
             const float height = tallest * height_fraction(state.values[i], lowest, highest);
             const ImVec2 top_left{x, baseline - height};
             const ImVec2 bottom_right{x + width, baseline};
@@ -129,8 +118,8 @@ namespace {
             const ImU32 fill = lit ? IM_COL32(250, 204, 21, 255) : IM_COL32(236, 236, 236, 255);
             const ImU32 edge = lit ? IM_COL32(255, 232, 130, 255) : IM_COL32(255, 255, 255, 255);
 
-            draw->AddRectFilled(top_left, bottom_right, fill, 4.0f * scale);
-            draw->AddRect(top_left, bottom_right, edge, 4.0f * scale, 0, lit ? 2.5f : 1.0f);
+            draw->AddRectFilled(top_left, bottom_right, fill, 4.0f * camera.scale);
+            draw->AddRect(top_left, bottom_right, edge, 4.0f * camera.scale, 0, lit ? 2.5f : 1.0f);
 
             const std::string label = std::to_string(state.values[i]);
             const ImVec2 size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, label.c_str());
