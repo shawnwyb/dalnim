@@ -17,8 +17,7 @@ All three at once, for a fresh clone:
 cmake -B build && cmake --build build && ./build/bin/dalnim
 ```
 
-Day to day, you only need build and run — CMake re-configures itself
-automatically when `CMakeLists.txt` changes:
+Day to day, you only need build and run — CMake re-configures itself automatically when `CMakeLists.txt` changes:
 
 ```bash
 cmake --build build && ./build/bin/dalnim
@@ -28,16 +27,14 @@ To start over, delete the build directory: `rm -rf build`
 
 ## Tests
 
-Unit tests use [doctest](https://github.com/doctest/doctest), which CMake
-downloads on the first configure. Building does not run them:
+Unit tests use [doctest](https://github.com/doctest/doctest), which CMake downloads on the first configure. Building does not run them:
 
 ```bash
 cmake --build build                        # build the test binary
 ctest --test-dir build --output-on-failure  # run it
 ```
 
-`ctest` reports pass/fail per test binary. To see individual test cases, or to
-run one by name, invoke the binary directly:
+`ctest` reports pass/fail per test binary. To see individual test cases, or to run one by name, invoke the binary directly:
 
 ```bash
 ./build/bin/dalnim_tests
@@ -48,12 +45,4 @@ Tests are built by default. To skip them, and skip the doctest download:
 
 ```bash
 cmake -B build -DDALNIM_BUILD_TESTS=OFF
-```
-
-## Layout
-
-```
-src/    application code
-tests/  unit tests
-build/  generated; executables land in build/bin
 ```
