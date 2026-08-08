@@ -11,6 +11,7 @@
 
 #include "core/algos/bubble_sort.hpp"
 #include "core/layout.hpp"
+#include "core/parse.hpp"
 
 namespace dalnim {
 namespace {
@@ -18,47 +19,75 @@ namespace {
     constexpr int kWindowHeight = 420;
     constexpr float kBoxSize = 48.0f;
     constexpr float kOriginX = 80.0f;
-    constexpr float kOriginY = 200.0f;
+    constexpr float kOriginY = 240.0f;
 
-    void draw_boxes(const std::vector<int>& values, const ArrayAnimation& anim, double t) {
+    struct AppState {
+        char input[128] = "5, 3, 8, 1, 9, 2";
+        std::vector<int> values;
+        ArrayAnimation anim;
+        double t = 0.0;
+        bool playing = true;
+    };
+
+    void rebuild(AppState& state) {
+        state.values = parse_int_list(state.input);
+        state.anim = build_array_animation(state.values, bubble_sort(state.values));
+        state.t = 0.0;
+        state.playing = true;
+    }
+
+    void draw_boxes(const AppState& state) {
         ImDrawList* draw = ImGui::GetBackgroundDrawList();
-        for (std::size_t i = 0; i < values.size(); ++i) {
-            const float x = kOriginX + static_cast<float>(anim.x[i].sample(t));
+        for (std::size_t i = 0; i < state.values.size(); ++i) {
+            const float x = kOriginX + static_cast<float>(state.anim.x[i].sample(state.t));
             const ImVec2 top_left{x, kOriginY};
             const ImVec2 bottom_right{x + kBoxSize, kOriginY + kBoxSize};
 
             draw->AddRectFilled(top_left, bottom_right, IM_COL32(56, 78, 122, 255), 6.0f);
             draw->AddRect(top_left, bottom_right, IM_COL32(150, 180, 220, 255), 6.0f);
 
-            const std::string label = std::to_string(values[i]);
+            const std::string label = std::to_string(state.values[i]);
             const ImVec2 size = ImGui::CalcTextSize(label.c_str());
             const ImVec2 at{x + (kBoxSize - size.x) * 0.5f, kOriginY + (kBoxSize - size.y) * 0.5f};
             draw->AddText(at, IM_COL32_WHITE, label.c_str());
         }
     }
 
-    void draw_transport(double duration, double& t, bool& playing) {
+    void draw_panel(AppState& state) {
         ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(420.0f, 0.0f), ImGuiCond_FirstUseEver);
-        ImGui::Begin("timeline");
+        ImGui::SetNextWindowSize(ImVec2(500.0f, 0.0f), ImGuiCond_FirstUseEver);
+        ImGui::Begin("dalnim");
 
-        if (ImGui::Button(playing ? "pause" : "play")) {
-            playing = !playing;
-            if (playing && t >= duration) {
-                t = 0.0;
+        ImGui::SetNextItemWidth(-60.0f);
+        if (ImGui::InputText("##input", state.input, sizeof(state.input),
+                             ImGuiInputTextFlags_EnterReturnsTrue)) {
+            rebuild(state);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("run")) {
+            rebuild(state);
+        }
+
+        if (ImGui::Button(state.playing ? "pause" : "play")) {
+            state.playing = !state.playing;
+            if (state.playing && state.t >= state.anim.duration) {
+                state.t = 0.0;
             }
         }
         ImGui::SameLine();
         if (ImGui::Button("restart")) {
-            t = 0.0;
-            playing = true;
+            state.t = 0.0;
+            state.playing = true;
         }
+        ImGui::SameLine();
+        ImGui::Text("%zu values", state.values.size());
 
-        float scrubbed = static_cast<float>(t);
+        float scrubbed = static_cast<float>(state.t);
         ImGui::SetNextItemWidth(-1.0f);
-        if (ImGui::SliderFloat("##t", &scrubbed, 0.0f, static_cast<float>(duration), "%.2f s")) {
-            t = scrubbed;
-            playing = false;
+        if (ImGui::SliderFloat("##t", &scrubbed, 0.0f,
+                               static_cast<float>(state.anim.duration), "%.2f s")) {
+            state.t = scrubbed;
+            state.playing = false;
         }
 
         ImGui::End();
@@ -66,8 +95,8 @@ namespace {
 }
 
 int run_app() {
-    const std::vector<int> values{5, 3, 8, 1, 9, 2};
-    const ArrayAnimation anim = build_array_animation(values, bubble_sort(values));
+    AppState state;
+    rebuild(state);
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("SDL_Init failed: %s", SDL_GetError());
@@ -86,10 +115,7 @@ int run_app() {
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
 
-    double t = 0.0;
-    bool playing = true;
     Uint64 last_tick = SDL_GetTicks();
-
     bool running = true;
     while (running) {
         SDL_Event event;
@@ -104,19 +130,19 @@ int run_app() {
         const double dt = static_cast<double>(now - last_tick) / 1000.0;
         last_tick = now;
 
-        if (playing) {
-            t += dt;
-            if (t >= anim.duration) {
-                t = anim.duration;
-                playing = false;
+        if (state.playing) {
+            state.t += dt;
+            if (state.t >= state.anim.duration) {
+                state.t = state.anim.duration;
+                state.playing = false;
             }
         }
 
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        draw_boxes(values, anim, t);
-        draw_transport(anim.duration, t, playing);
+        draw_boxes(state);
+        draw_panel(state);
         ImGui::Render();
 
         SDL_SetRenderDrawColor(renderer, 24, 26, 32, 255);
