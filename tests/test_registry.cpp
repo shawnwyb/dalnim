@@ -1,6 +1,7 @@
 #include <doctest/doctest.h>
 #include <algorithm>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 #include "core/algos/registry.hpp"
@@ -65,8 +66,14 @@ TEST_CASE("every algorithm names indices inside the array") {
         CAPTURE(algo.name);
         for (const dalnim::Event& e : algo.run(input)) {
             std::visit([&](const auto& ev) {
-                CHECK(ev.a < input.size());
-                CHECK(ev.b < input.size());
+                using Kind = std::decay_t<decltype(ev)>;
+                if constexpr (std::is_same_v<Kind, dalnim::Compare> ||
+                              std::is_same_v<Kind, dalnim::Swap>) {
+                    CHECK(ev.a < input.size());
+                    CHECK(ev.b < input.size());
+                } else {
+                    CHECK(ev.index < input.size());
+                }
             }, e);
         }
     }

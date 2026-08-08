@@ -14,7 +14,16 @@ namespace dalnim {
         std::size_t b;
     };
 
-    using Event = std::variant<Compare, Swap>;
+    struct Highlight {
+        std::size_t index;
+    };
+
+    struct Set {
+        std::size_t index;
+        int value;
+    };
+
+    using Event = std::variant<Compare, Swap, Highlight, Set>;
 
     using EventLog = std::vector<Event>;
 }
