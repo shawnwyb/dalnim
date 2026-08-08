@@ -5,6 +5,8 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlrenderer3.h>
 
+#include <algorithm>
+#include <cfloat>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -17,9 +19,16 @@ namespace dalnim {
 namespace {
     constexpr int kWindowWidth = 900;
     constexpr int kWindowHeight = 420;
-    constexpr float kBoxSize = 48.0f;
-    constexpr float kOriginX = 80.0f;
-    constexpr float kOriginY = 240.0f;
+    constexpr std::size_t kMaxValues = 50;
+
+    // Core positions boxes kBoxSpacing units apart; a box covers most of that gap.
+    constexpr float kBoxUnits = 48.0f;
+    constexpr float kSideMargin = 40.0f;
+    constexpr float kMinScale = 0.12f;
+    constexpr float kTopMargin = 150.0f;
+    constexpr float kBottomMargin = 50.0f;
+    constexpr float kShortestBar = 0.18f;
+    constexpr float kSmallestReadableFont = 9.0f;
 
     struct AppState {
         char input[128] = "5, 3, 8, 1, 9, 2";
@@ -27,37 +36,88 @@ namespace {
         ArrayAnimation anim;
         double t = 0.0;
         bool playing = true;
+        bool truncated = false;
     };
 
     void rebuild(AppState& state) {
         state.values = parse_int_list(state.input);
+        state.truncated = state.values.size() > kMaxValues;
+        if (state.truncated) {
+            state.values.resize(kMaxValues);
+        }
         state.anim = build_array_animation(state.values, bubble_sort(state.values));
         state.t = 0.0;
         state.playing = true;
     }
 
-    void draw_boxes(const AppState& state) {
+    // Shrinks the row until it fits the window, never enlarging past its natural size.
+    float fit_scale(std::size_t count, float window_width) {
+        if (count == 0) {
+            return 1.0f;
+        }
+        const float span = static_cast<float>(count - 1) * static_cast<float>(kBoxSpacing) + kBoxUnits;
+        const float usable = window_width - 2.0f * kSideMargin;
+        const float scale = usable / span;
+        if (scale >= 1.0f) {
+            return 1.0f;
+        }
+        return scale < kMinScale ? kMinScale : scale;
+    }
+
+    // Where a value sits between the smallest and largest on screen, 0..1.
+    float height_fraction(int value, int lowest, int highest) {
+        if (highest == lowest) {
+            return 1.0f;
+        }
+        const float span = static_cast<float>(highest) - static_cast<float>(lowest);
+        const float over = static_cast<float>(value) - static_cast<float>(lowest);
+        return kShortestBar + (over / span) * (1.0f - kShortestBar);
+    }
+
+    void draw_bars(const AppState& state) {
+        const std::size_t count = state.values.size();
+        if (count == 0) {
+            return;
+        }
+
+        const ImVec2 screen = ImGui::GetIO().DisplaySize;
+        const float scale = fit_scale(count, screen.x);
+        const float width = kBoxUnits * scale;
+        const float span = (static_cast<float>(count - 1) * static_cast<float>(kBoxSpacing) + kBoxUnits) * scale;
+        const float origin_x = (screen.x - span) * 0.5f;
+        const float baseline = screen.y - kBottomMargin;
+        const float tallest = baseline - kTopMargin;
+        const float font_size = ImGui::GetFontSize() * scale;
+
+        const auto bounds = std::minmax_element(state.values.begin(), state.values.end());
+        const int lowest = *bounds.first;
+        const int highest = *bounds.second;
+
         ImDrawList* draw = ImGui::GetBackgroundDrawList();
+        ImFont* font = ImGui::GetFont();
         const ComparePair* comparing = compare_at(state.anim, state.t);
 
-        for (std::size_t i = 0; i < state.values.size(); ++i) {
+        for (std::size_t i = 0; i < count; ++i) {
             const bool lit = comparing != nullptr &&
                              (comparing->box_a == i || comparing->box_b == i);
 
-            const float x = kOriginX + static_cast<float>(state.anim.x[i].sample(state.t));
-            const ImVec2 top_left{x, kOriginY};
-            const ImVec2 bottom_right{x + kBoxSize, kOriginY + kBoxSize};
+            const float x = origin_x + static_cast<float>(state.anim.x[i].sample(state.t)) * scale;
+            const float height = tallest * height_fraction(state.values[i], lowest, highest);
+            const ImVec2 top_left{x, baseline - height};
+            const ImVec2 bottom_right{x + width, baseline};
 
             const ImU32 fill = lit ? IM_COL32(196, 138, 46, 255) : IM_COL32(56, 78, 122, 255);
             const ImU32 edge = lit ? IM_COL32(255, 214, 128, 255) : IM_COL32(150, 180, 220, 255);
 
-            draw->AddRectFilled(top_left, bottom_right, fill, 6.0f);
-            draw->AddRect(top_left, bottom_right, edge, 6.0f, 0, lit ? 2.5f : 1.0f);
+            draw->AddRectFilled(top_left, bottom_right, fill, 4.0f * scale);
+            draw->AddRect(top_left, bottom_right, edge, 4.0f * scale, 0, lit ? 2.5f : 1.0f);
 
             const std::string label = std::to_string(state.values[i]);
-            const ImVec2 size = ImGui::CalcTextSize(label.c_str());
-            const ImVec2 at{x + (kBoxSize - size.x) * 0.5f, kOriginY + (kBoxSize - size.y) * 0.5f};
-            draw->AddText(at, IM_COL32_WHITE, label.c_str());
+            const ImVec2 size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, label.c_str());
+            if (font_size >= kSmallestReadableFont && size.x <= width && size.y * 1.8f <= height) {
+                const ImVec2 at{x + (width - size.x) * 0.5f, top_left.y + size.y * 0.4f};
+                draw->AddText(font, font_size, at, IM_COL32_WHITE, label.c_str());
+            }
         }
     }
 
@@ -88,7 +148,12 @@ namespace {
             state.playing = true;
         }
         ImGui::SameLine();
-        ImGui::Text("%zu values", state.values.size());
+        if (state.truncated) {
+            ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.35f, 1.0f),
+                               "%zu values (capped at %zu)", state.values.size(), kMaxValues);
+        } else {
+            ImGui::Text("%zu values", state.values.size());
+        }
 
         float scrubbed = static_cast<float>(state.t);
         ImGui::SetNextItemWidth(-1.0f);
@@ -111,7 +176,8 @@ int run_app() {
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("dalnim", kWindowWidth, kWindowHeight, 0);
+    SDL_Window* window = SDL_CreateWindow("dalnim", kWindowWidth, kWindowHeight,
+                                          SDL_WINDOW_RESIZABLE);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
     if (window == nullptr || renderer == nullptr) {
         SDL_Log("window or renderer failed: %s", SDL_GetError());
@@ -149,7 +215,7 @@ int run_app() {
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        draw_boxes(state);
+        draw_bars(state);
         draw_panel(state);
         ImGui::Render();
 
