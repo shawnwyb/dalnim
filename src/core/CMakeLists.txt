@@ -3,6 +3,8 @@ add_library(dalnim_core STATIC
     algos/bubble_sort.cpp
     algos/selection_sort.cpp
     algos/registry.cpp
+    algos/flood_fill.cpp
+    grid.cpp
     layout.cpp
     parse.cpp
     ease.cpp
