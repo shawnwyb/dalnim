@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "core/algos/bubble_sort.hpp"
+#include "core/algos/registry.hpp"
 #include "core/layout.hpp"
 #include "core/parse.hpp"
 
@@ -32,6 +32,7 @@ namespace {
 
     struct AppState {
         char input[128] = "5, 3, 8, 1, 9, 2";
+        std::size_t algorithm = 0;
         std::vector<int> values;
         ArrayAnimation anim;
         double t = 0.0;
@@ -45,7 +46,8 @@ namespace {
         if (state.truncated) {
             state.values.resize(kMaxValues);
         }
-        state.anim = build_array_animation(state.values, bubble_sort(state.values));
+        const Algorithm& algo = algorithms()[state.algorithm];
+        state.anim = build_array_animation(state.values, algo.run(state.values));
         state.t = 0.0;
         state.playing = true;
     }
@@ -125,6 +127,21 @@ namespace {
         ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500.0f, 0.0f), ImGuiCond_FirstUseEver);
         ImGui::Begin("dalnim");
+
+        ImGui::SetNextItemWidth(-60.0f);
+        if (ImGui::BeginCombo("##algorithm", algorithms()[state.algorithm].name)) {
+            for (std::size_t i = 0; i < algorithms().size(); ++i) {
+                const bool chosen = i == state.algorithm;
+                if (ImGui::Selectable(algorithms()[i].name, chosen)) {
+                    state.algorithm = i;
+                    rebuild(state);
+                }
+                if (chosen) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
 
         ImGui::SetNextItemWidth(-60.0f);
         if (ImGui::InputText("##input", state.input, sizeof(state.input),

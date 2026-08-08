@@ -1,6 +1,8 @@
 add_library(dalnim_core STATIC
     timeline.cpp
     algos/bubble_sort.cpp
+    algos/selection_sort.cpp
+    algos/registry.cpp
     layout.cpp
     parse.cpp
     ease.cpp

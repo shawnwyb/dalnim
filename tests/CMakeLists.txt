@@ -13,6 +13,7 @@ add_executable(dalnim_tests
     test_timeline.cpp
     test_event.cpp
     test_bubble_sort.cpp
+    test_registry.cpp
     test_layout.cpp
     test_parse.cpp
     test_ease.cpp
