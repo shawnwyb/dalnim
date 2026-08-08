@@ -1,9 +1,13 @@
 # dalnim
 
+An animation engine for data structures and algorithms. An algorithm runs once and records what it did; the recording is then replayed at any point in time, so the whole run is scrubbable rather than only playable forwards.
+
 ## Quick start
 
 Requires CMake 3.20+ and a C++20 compiler.
 Tested with CMake 3.31 and Apple Clang 17 on macOS.
+
+CMake downloads SDL3, Dear ImGui, and doctest on the first configure.
 
 ```bash
 cmake -B build       # configure (once, or after editing CMakeLists.txt)
