@@ -7,4 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Emits build/compile_commands.json for clangd and IDE tooling.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(dalnim src/main.cpp)
+# Collect every executable in one place, whatever subdirectory it was declared in.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+option(DALNIM_BUILD_TESTS "Build the unit tests" ON)
+
+add_subdirectory(src)
+
+if(DALNIM_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
