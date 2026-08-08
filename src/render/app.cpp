@@ -36,6 +36,33 @@ namespace {
             draw->AddText(at, IM_COL32_WHITE, label.c_str());
         }
     }
+
+    void draw_transport(double duration, double& t, bool& playing) {
+        ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(420.0f, 0.0f), ImGuiCond_FirstUseEver);
+        ImGui::Begin("timeline");
+
+        if (ImGui::Button(playing ? "pause" : "play")) {
+            playing = !playing;
+            if (playing && t >= duration) {
+                t = 0.0;
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("restart")) {
+            t = 0.0;
+            playing = true;
+        }
+
+        float scrubbed = static_cast<float>(t);
+        ImGui::SetNextItemWidth(-1.0f);
+        if (ImGui::SliderFloat("##t", &scrubbed, 0.0f, static_cast<float>(duration), "%.2f s")) {
+            t = scrubbed;
+            playing = false;
+        }
+
+        ImGui::End();
+    }
 }
 
 int run_app() {
@@ -59,7 +86,10 @@ int run_app() {
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
 
-    const Uint64 started = SDL_GetTicks();
+    double t = 0.0;
+    bool playing = true;
+    Uint64 last_tick = SDL_GetTicks();
+
     bool running = true;
     while (running) {
         SDL_Event event;
@@ -70,13 +100,23 @@ int run_app() {
             }
         }
 
-        const double elapsed = static_cast<double>(SDL_GetTicks() - started) / 1000.0;
-        const double t = anim.duration > 0.0 ? SDL_fmod(elapsed, anim.duration + 1.0) : 0.0;
+        const Uint64 now = SDL_GetTicks();
+        const double dt = static_cast<double>(now - last_tick) / 1000.0;
+        last_tick = now;
+
+        if (playing) {
+            t += dt;
+            if (t >= anim.duration) {
+                t = anim.duration;
+                playing = false;
+            }
+        }
 
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
         draw_boxes(values, anim, t);
+        draw_transport(anim.duration, t, playing);
         ImGui::Render();
 
         SDL_SetRenderDrawColor(renderer, 24, 26, 32, 255);
