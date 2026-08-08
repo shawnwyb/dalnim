@@ -85,3 +85,42 @@ TEST_CASE("every box lands on a distinct slot at the end of a real sort") {
         slot_taken[index] = true;
     }
 }
+
+TEST_CASE("a compare is recorded as a time span over two boxes") {
+    dalnim::EventLog log{dalnim::Compare{.a=0, .b=1}};
+    auto anim = dalnim::build_array_animation({2, 1}, log);
+
+    REQUIRE(anim.compares.size() == 1);
+    CHECK(anim.compares[0].begin == doctest::Approx(0.0));
+    CHECK(anim.compares[0].end == doctest::Approx(kSecondsPerEvent));
+    CHECK(anim.compares[0].box_a == 0);
+    CHECK(anim.compares[0].box_b == 1);
+}
+
+TEST_CASE("nothing is compared outside a compare span") {
+    dalnim::EventLog log{dalnim::Compare{.a=0, .b=1}};
+    auto anim = dalnim::build_array_animation({2, 1}, log);
+
+    CHECK(dalnim::compare_at(anim, kSecondsPerEvent / 2.0) != nullptr);
+    CHECK(dalnim::compare_at(anim, kSecondsPerEvent) == nullptr);
+    CHECK(dalnim::compare_at(anim, 99.0) == nullptr);
+}
+
+TEST_CASE("a compare after a swap names the boxes now in those slots") {
+    dalnim::EventLog log{
+        dalnim::Swap{.a=0, .b=1},
+        dalnim::Compare{.a=0, .b=1},
+    };
+    auto anim = dalnim::build_array_animation({2, 1}, log);
+
+    const auto* c = dalnim::compare_at(anim, 1.5 * kSecondsPerEvent);
+    REQUIRE(c != nullptr);
+    CHECK(c->box_a == 1);
+    CHECK(c->box_b == 0);
+}
+
+TEST_CASE("swaps are not recorded as compares") {
+    dalnim::EventLog log{dalnim::Swap{.a=0, .b=1}};
+    auto anim = dalnim::build_array_animation({2, 1}, log);
+    CHECK(anim.compares.empty());
+}

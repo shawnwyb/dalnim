@@ -38,13 +38,21 @@ namespace {
 
     void draw_boxes(const AppState& state) {
         ImDrawList* draw = ImGui::GetBackgroundDrawList();
+        const ComparePair* comparing = compare_at(state.anim, state.t);
+
         for (std::size_t i = 0; i < state.values.size(); ++i) {
+            const bool lit = comparing != nullptr &&
+                             (comparing->box_a == i || comparing->box_b == i);
+
             const float x = kOriginX + static_cast<float>(state.anim.x[i].sample(state.t));
             const ImVec2 top_left{x, kOriginY};
             const ImVec2 bottom_right{x + kBoxSize, kOriginY + kBoxSize};
 
-            draw->AddRectFilled(top_left, bottom_right, IM_COL32(56, 78, 122, 255), 6.0f);
-            draw->AddRect(top_left, bottom_right, IM_COL32(150, 180, 220, 255), 6.0f);
+            const ImU32 fill = lit ? IM_COL32(196, 138, 46, 255) : IM_COL32(56, 78, 122, 255);
+            const ImU32 edge = lit ? IM_COL32(255, 214, 128, 255) : IM_COL32(150, 180, 220, 255);
+
+            draw->AddRectFilled(top_left, bottom_right, fill, 6.0f);
+            draw->AddRect(top_left, bottom_right, edge, 6.0f, 0, lit ? 2.5f : 1.0f);
 
             const std::string label = std::to_string(state.values[i]);
             const ImVec2 size = ImGui::CalcTextSize(label.c_str());

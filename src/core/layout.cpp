@@ -19,13 +19,24 @@ namespace dalnim {
         std::iota(box_at_slot.begin(), box_at_slot.end(), 0);
 
         for (std::size_t k = 0; k < log.size(); ++k) {
+            const double t0 = static_cast<double>(k) * kSecondsPerEvent;
+            const double t1 = t0 + kSecondsPerEvent;
+
+            if (const auto* c = std::get_if<Compare>(&log[k])) {
+                anim.compares.push_back(ComparePair{
+                    .begin = t0,
+                    .end = t1,
+                    .box_a = box_at_slot[c->a],
+                    .box_b = box_at_slot[c->b],
+                });
+                continue;
+            }
+
             const auto* s = std::get_if<Swap>(&log[k]);
             if (s == nullptr) {
                 continue;
             }
 
-            const double t0 = static_cast<double>(k) * kSecondsPerEvent;
-            const double t1 = t0 + kSecondsPerEvent;
             const double x_a = static_cast<double>(s->a) * kBoxSpacing;
             const double x_b = static_cast<double>(s->b) * kBoxSpacing;
 
@@ -41,5 +52,14 @@ namespace dalnim {
         }
 
         return anim;
+    }
+
+    const ComparePair* compare_at(const ArrayAnimation& anim, double t) {
+        for (const ComparePair& c : anim.compares) {
+            if (t >= c.begin && t < c.end) {
+                return &c;
+            }
+        }
+        return nullptr;
     }
 }
