@@ -30,6 +30,24 @@ namespace {
     constexpr float kShortestBar = 0.18f;
     constexpr float kSmallestReadableFont = 9.0f;
 
+    // ImGui's dark theme with its blue accents replaced by greys.
+    void apply_theme() {
+        ImGui::StyleColorsDark();
+        ImGui::GetStyle().FrameBorderSize = 1.0f;
+
+        const ImVec4 black{0.00f, 0.00f, 0.00f, 1.00f};
+        const ImVec4 dim{0.16f, 0.16f, 0.16f, 1.00f};
+        const ImVec4 lift{0.28f, 0.28f, 0.28f, 1.00f};
+        const ImVec4 white{1.00f, 1.00f, 1.00f, 1.00f};
+
+        ImVec4* c = ImGui::GetStyle().Colors;
+        c[ImGuiCol_WindowBg] = c[ImGuiCol_PopupBg] = c[ImGuiCol_TitleBgActive] = black;
+        c[ImGuiCol_Button] = c[ImGuiCol_Header] = c[ImGuiCol_FrameBg] = dim;
+        c[ImGuiCol_ButtonHovered] = c[ImGuiCol_HeaderHovered] = c[ImGuiCol_FrameBgHovered] = lift;
+        c[ImGuiCol_ButtonActive] = c[ImGuiCol_HeaderActive] = c[ImGuiCol_FrameBgActive] = lift;
+        c[ImGuiCol_SliderGrab] = c[ImGuiCol_SliderGrabActive] = c[ImGuiCol_CheckMark] = white;
+    }
+
     struct AppState {
         char input[128] = "5, 3, 8, 1, 9, 2";
         std::size_t algorithm = 0;
@@ -108,8 +126,8 @@ namespace {
             const ImVec2 top_left{x, baseline - height};
             const ImVec2 bottom_right{x + width, baseline};
 
-            const ImU32 fill = lit ? IM_COL32(196, 138, 46, 255) : IM_COL32(56, 78, 122, 255);
-            const ImU32 edge = lit ? IM_COL32(255, 214, 128, 255) : IM_COL32(150, 180, 220, 255);
+            const ImU32 fill = lit ? IM_COL32(250, 204, 21, 255) : IM_COL32(236, 236, 236, 255);
+            const ImU32 edge = lit ? IM_COL32(255, 232, 130, 255) : IM_COL32(255, 255, 255, 255);
 
             draw->AddRectFilled(top_left, bottom_right, fill, 4.0f * scale);
             draw->AddRect(top_left, bottom_right, edge, 4.0f * scale, 0, lit ? 2.5f : 1.0f);
@@ -118,7 +136,7 @@ namespace {
             const ImVec2 size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, label.c_str());
             if (font_size >= kSmallestReadableFont && size.x <= width && size.y * 1.8f <= height) {
                 const ImVec2 at{x + (width - size.x) * 0.5f, top_left.y + size.y * 0.4f};
-                draw->AddText(font, font_size, at, IM_COL32_WHITE, label.c_str());
+                draw->AddText(font, font_size, at, IM_COL32_BLACK, label.c_str());
             }
         }
     }
@@ -203,6 +221,7 @@ int run_app() {
     }
 
     ImGui::CreateContext();
+    apply_theme();
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
 
@@ -236,7 +255,7 @@ int run_app() {
         draw_panel(state);
         ImGui::Render();
 
-        SDL_SetRenderDrawColor(renderer, 24, 26, 32, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
