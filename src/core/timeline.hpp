@@ -9,6 +9,9 @@ namespace dalnim {
 
     class Timeline {
         public:
-            std::vector<Keyframe> keyframes;
+            void add(double time, double value);
+            double sample(double t) const;
+        private:
+            std::vector<Keyframe> keyframes_;
     };
 }
