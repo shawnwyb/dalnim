@@ -1,5 +1,9 @@
-# Build output
+# build output
 build/
+
+# clangd: root symlink + on-disk index
+compile_commands.json
+.cache/
 
 # macOS
 .DS_Store

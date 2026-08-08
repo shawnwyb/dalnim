@@ -8,7 +8,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(doctest)
 
-add_executable(dalnim_tests test_main.cpp)
-target_link_libraries(dalnim_tests PRIVATE doctest::doctest)
+add_executable(dalnim_tests
+    test_main.cpp
+    test_timeline.cpp
+)
+target_link_libraries(dalnim_tests PRIVATE doctest::doctest dalnim_core)
 
 add_test(NAME dalnim_tests COMMAND dalnim_tests)

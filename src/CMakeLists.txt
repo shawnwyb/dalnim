@@ -1,3 +1,4 @@
-# The app. Everything that touches a window or draws pixels lives here for now;
-# it becomes its own `dalnim_render` library once SDL and ImGui arrive.
+add_subdirectory(core)
+
 add_executable(dalnim main.cpp)
+target_link_libraries(dalnim PRIVATE dalnim_core)
