@@ -15,6 +15,7 @@ add_executable(dalnim_tests
     test_bubble_sort.cpp
     test_layout.cpp
     test_parse.cpp
+    test_ease.cpp
 )
 target_link_libraries(dalnim_tests PRIVATE doctest::doctest dalnim_core)
 

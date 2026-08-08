@@ -3,6 +3,7 @@ add_library(dalnim_core STATIC
     algos/bubble_sort.cpp
     layout.cpp
     parse.cpp
+    ease.cpp
 )
 
 target_include_directories(dalnim_core PUBLIC ${PROJECT_SOURCE_DIR}/src)

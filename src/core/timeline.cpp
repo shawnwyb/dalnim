@@ -1,4 +1,5 @@
 #include "core/timeline.hpp"
+#include "core/ease.hpp"
 #include <algorithm>
 #include <cstddef>
 
@@ -28,7 +29,7 @@ namespace dalnim {
             }
             const Keyframe& k1 = keyframes_[i - 1];
             const Keyframe& k2 = keyframes_[i];
-            double alpha = (t - k1.time) / (k2.time - k1.time);
+            double alpha = smooth((t - k1.time) / (k2.time - k1.time));
             return k1.value + alpha * (k2.value - k1.value);
         }
         return keyframes_.back().value;
