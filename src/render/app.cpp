@@ -302,9 +302,12 @@ namespace {
         std::optional<std::size_t> clicked;
 
         for (std::size_t i = 0; i < cells.size(); ++i) {
-            const auto row = static_cast<double>(i / grid.width);
-            const auto col = static_cast<double>(i % grid.width);
-            const ImVec2 top_left{camera.x(col * kCellPitch), camera.y(row * kCellPitch)};
+            const std::size_t row = i / grid.width;
+            const std::size_t col = i % grid.width;
+            const ImVec2 top_left{
+                camera.x(static_cast<double>(col) * kCellPitch),
+                camera.y(static_cast<double>(row) * kCellPitch),
+            };
             const ImVec2 bottom_right{top_left.x + side, top_left.y + side};
 
             const bool hovered = mouse_is_ours &&
