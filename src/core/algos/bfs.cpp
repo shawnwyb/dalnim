@@ -31,24 +31,7 @@ EventLog bfs(Grid grid, std::size_t start) {
         log.push_back(Unmark{.index = i, .kind = MarkKind::Frontier});
         log.push_back(Mark{.index = i, .kind = MarkKind::Visited});
 
-        const std::size_t row = i / grid.width;
-        const std::size_t col = i % grid.width;
-
-        std::vector<std::size_t> neighbours;
-        if (col + 1 < grid.width) {
-            neighbours.push_back(i + 1);
-        }
-        if (col > 0) {
-            neighbours.push_back(i - 1);
-        }
-        if (row + 1 < grid.height) {
-            neighbours.push_back(i + grid.width);
-        }
-        if (row > 0) {
-            neighbours.push_back(i - grid.width);
-        }
-
-        for (std::size_t j : neighbours) {
+        for (std::size_t j : neighbours(grid, i)) {
             if (seen[j] || grid.cells[j] != kOpen) {
                 continue;
             }

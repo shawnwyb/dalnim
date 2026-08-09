@@ -24,19 +24,8 @@ namespace dalnim {
             grid.cells[i] = fill_value;
             log.push_back(Set{.index = i, .value = fill_value});
 
-            const std::size_t row = i / grid.width;
-            const std::size_t col = i % grid.width;
-            if (col + 1 < grid.width) {
-                pending.push_back(i + 1);
-            }
-            if (col > 0) {
-                pending.push_back(i - 1);
-            }
-            if (row + 1 < grid.height) {
-                pending.push_back(i + grid.width);
-            }
-            if (row > 0) {
-                pending.push_back(i - grid.width);
+            for (std::size_t j : neighbours(grid, i)) {
+                pending.push_back(j);
             }
         }
 
