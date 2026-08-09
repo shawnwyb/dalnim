@@ -3,16 +3,12 @@
 #include <optional>
 #include <vector>
 #include "core/event.hpp"
+#include "core/point.hpp"
 #include "core/tree.hpp"
 
 namespace dalnim {
     inline constexpr double kLeafSpacing = 70.0;
     inline constexpr double kTreeRowHeight = 80.0;
-
-    struct Point {
-        double x = 0.0;
-        double y = 0.0;
-    };
 
     // The first view whose positions come from the shape of the data rather than
     // from an index. Nothing here moves, so the positions are worked out once.

@@ -44,6 +44,7 @@ add_library(dalnim_render STATIC
     stack_view.cpp
     tree_view.cpp
     list_view.cpp
+    graph_view.cpp
     camera.cpp
     stage.cpp
 )

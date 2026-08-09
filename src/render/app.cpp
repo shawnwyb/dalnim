@@ -18,11 +18,13 @@
 #include "core/grid_layout.hpp"
 #include "core/parse.hpp"
 #include "core/stack_layout.hpp"
+#include "core/graph_layout.hpp"
 #include "core/list_layout.hpp"
 #include "core/tree_layout.hpp"
 #include "render/array_view.hpp"
 #include "render/grid_view.hpp"
 #include "render/stack_view.hpp"
+#include "render/graph_view.hpp"
 #include "render/list_view.hpp"
 #include "render/tree_view.hpp"
 #include "render/stage.hpp"
@@ -70,6 +72,14 @@ namespace {
             "0 0 0 9 0 0 0 0\n"
             "9 9 0 9 0 9 9 0";
         char tree_input[256] = "8 3 10 1 6 . 14 . . 4 7 . . 13 .";
+        char graph_input[512] =
+            "1 2\n"
+            "0 3 4\n"
+            "0 5\n"
+            "1\n"
+            "1 5\n"
+            "2 4";
+        int graph_start = 0;
         char list_input[256] = "3 2 0 -4 7 9";
         int list_cycle_to = 2;
         std::size_t grid_start = 0;
@@ -81,6 +91,7 @@ namespace {
         StackAnimation stack_anim;
         TreeAnimation tree_anim;
         ListAnimation list_anim;
+        GraphAnimation graph_anim;
         double t = 0.0;
         float speed = 1.0f;
         bool playing = true;
@@ -94,6 +105,7 @@ namespace {
             case View::Stack: return state.stack_anim.log;
             case View::Tree: return state.tree_anim.log;
             case View::List: return state.list_anim.log;
+            case View::Graph: return state.graph_anim.log;
         }
         return state.anim.log;
     }
@@ -126,6 +138,13 @@ namespace {
         state.view = algo.view;
         state.t = 0.0;
         state.playing = true;
+
+        if (const auto* run = std::get_if<GraphAlgorithm>(&algo.run)) {
+            const Graph graph = parse_graph(state.graph_input);
+            const auto start = static_cast<std::size_t>(state.graph_start < 0 ? 0 : state.graph_start);
+            state.graph_anim = build_graph_animation(graph, (*run)(graph, start));
+            return;
+        }
 
         if (const auto* run = std::get_if<ListAlgorithm>(&algo.run)) {
             LinkedList list;
@@ -208,7 +227,13 @@ namespace {
         }
 
         ImGui::Spacing();
-        if (state.view == View::List) {
+        if (state.view == View::Graph) {
+            ImGui::TextUnformatted("edges, one line per node");
+            ImGui::InputTextMultiline("##graph", state.graph_input, sizeof(state.graph_input),
+                                      ImVec2(-1.0f, ImGui::GetTextLineHeight() * 7.5f));
+            ImGui::SetNextItemWidth(-70.0f);
+            ImGui::InputInt("start", &state.graph_start);
+        } else if (state.view == View::List) {
             ImGui::TextUnformatted("nodes");
             ImGui::SetNextItemWidth(-1.0f);
             if (ImGui::InputText("##list", state.list_input, sizeof(state.list_input),
@@ -389,6 +414,9 @@ int run_app() {
                 break;
             case View::List:
                 draw_list(state.list_anim, state.t);
+                break;
+            case View::Graph:
+                draw_graph(state.graph_anim, state.t);
                 break;
             case View::Bars:
                 draw_array(state.values, state.anim, state.t);

@@ -13,6 +13,9 @@ add_library(dalnim_core STATIC
     algos/tree_dfs.cpp
     algos/cycle_detect.cpp
     linked_list.cpp
+    graph.cpp
+    graph_layout.cpp
+    algos/graph_bfs.cpp
     list_layout.cpp
     grid.cpp
     event.cpp
