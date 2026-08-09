@@ -23,10 +23,6 @@ namespace {
     };
 }
 
-bool wants_array(const Algorithm& algo) {
-    return std::holds_alternative<ArrayAlgorithm>(algo.run);
-}
-
 std::span<const Algorithm> algorithms() {
     return kAll;
 }

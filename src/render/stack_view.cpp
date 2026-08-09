@@ -64,18 +64,7 @@ void draw_stack(const StackAnimation& anim, double t) {
 
     // The pile sits under the middle of the row and grows towards it.
     const float pile_x = camera.x(row_span(count) * 0.5) - side * 0.5f;
-    const float baseline = screen.y - kPileBottom;
-    const float pitch = side + camera.length(kCellPitch - kCellUnits);
-
-    for (std::size_t depth = 0; depth < pile.size(); ++depth) {
-        const bool on_top = depth + 1 == pile.size();
-        const ImVec2 top_left{pile_x, baseline - static_cast<float>(depth + 1) * pitch};
-        draw_cell(draw, top_left, side, font_size, std::to_string(pile[depth]),
-                  on_top ? kInk : IM_COL32(150, 150, 150, 255),
-                  kEdge, false);
-    }
-
-    draw->AddLine(ImVec2(pile_x - 6.0f, baseline), ImVec2(pile_x + side + 6.0f, baseline),
-                  kEdge, 2.0f);
+    draw_pile(draw, pile, pile_x, screen.y - kPileBottom, side,
+              camera.length(kCellPitch - kCellUnits), font_size);
 }
 }

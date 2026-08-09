@@ -22,8 +22,6 @@ namespace dalnim {
         std::variant<ArrayAlgorithm, GridAlgorithm, TreeAlgorithm> run;
     };
 
-    bool wants_array(const Algorithm& algo);
-
     // Everything the app can offer, in menu order. Adding one is a line in registry.cpp.
     std::span<const Algorithm> algorithms();
 }

@@ -21,14 +21,27 @@ TEST_CASE("the registry is not empty") {
     CHECK(dalnim::algorithms().size() >= 2);
 }
 
-TEST_CASE("the registry holds both array and grid algorithms") {
+TEST_CASE("the registry holds every kind of algorithm") {
     bool any_array = false;
     bool any_grid = false;
+    bool any_tree = false;
     for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
-        (dalnim::wants_array(algo) ? any_array : any_grid) = true;
+        any_array = any_array || std::holds_alternative<dalnim::ArrayAlgorithm>(algo.run);
+        any_grid = any_grid || std::holds_alternative<dalnim::GridAlgorithm>(algo.run);
+        any_tree = any_tree || std::holds_alternative<dalnim::TreeAlgorithm>(algo.run);
     }
     CHECK(any_array);
     CHECK(any_grid);
+    CHECK(any_tree);
+}
+
+TEST_CASE("every view in the menu has at least one algorithm") {
+    for (const dalnim::View view : {dalnim::View::Bars, dalnim::View::Grid,
+                                    dalnim::View::Stack, dalnim::View::Tree}) {
+        const bool found = std::any_of(dalnim::algorithms().begin(), dalnim::algorithms().end(),
+                                       [&](const dalnim::Algorithm& a) { return a.view == view; });
+        CHECK(found);
+    }
 }
 
 TEST_CASE("every grid algorithm's log replays to a fully explored region") {

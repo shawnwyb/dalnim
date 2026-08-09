@@ -15,24 +15,8 @@ namespace {
     constexpr ImU32 kSeen = IM_COL32(196, 196, 196, 255);
     constexpr ImU32 kBranch = IM_COL32(110, 110, 110, 255);
 
-    void draw_pile(ImDrawList* draw, const std::vector<int>& pile, float font_size, float side) {
-        const float left = kSidebarWidth + 24.0f;
-        const float baseline = ImGui::GetIO().DisplaySize.y - 60.0f;
-
-        for (std::size_t depth = 0; depth < pile.size(); ++depth) {
-            const ImVec2 top_left{left, baseline - static_cast<float>(depth + 1) * (side + 4.0f)};
-            const ImVec2 bottom_right{top_left.x + side, top_left.y + side};
-            const bool on_top = depth + 1 == pile.size();
-
-            draw->AddRectFilled(top_left, bottom_right, on_top ? kInk : kSeen, 4.0f);
-            draw->AddRect(top_left, bottom_right, kEdge, 4.0f, 0, 1.5f);
-            draw_centred_label(draw, std::to_string(pile[depth]), font_size,
-                               top_left, side, side, IM_COL32_BLACK);
-        }
-
-        draw->AddLine(ImVec2(left - 6.0f, baseline), ImVec2(left + side + 6.0f, baseline),
-                      kEdge, 2.0f);
-    }
+    constexpr float kPileSide = 34.0f;
+    constexpr float kPileGap = 4.0f;
 }
 
 void draw_tree(const TreeAnimation& anim, double t) {
@@ -80,6 +64,8 @@ void draw_tree(const TreeAnimation& anim, double t) {
                            (is_lit || seen) ? IM_COL32_BLACK : kEdge);
     }
 
-    draw_pile(draw, tree_pile_at(anim, t), ImGui::GetFontSize() * 0.9f, 34.0f);
+    draw_pile(draw, tree_pile_at(anim, t), kSidebarWidth + 24.0f,
+              ImGui::GetIO().DisplaySize.y - 60.0f, kPileSide, kPileGap,
+              ImGui::GetFontSize() * 0.9f);
 }
 }

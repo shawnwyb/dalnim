@@ -1,6 +1,7 @@
 #pragma once
 #include <imgui.h>
 #include <string>
+#include <vector>
 #include "render/camera.hpp"
 
 namespace dalnim {
@@ -23,6 +24,11 @@ namespace dalnim {
     // Views never see the sidebar, so they cannot forget to allow for it.
     Camera fit_row_on_stage(double span_units);
     Camera fit_box_on_stage(double span_x_units, double span_y_units);
+
+    // A stack of numbers resting on a line, brightest at the top. Both the stack
+    // and the tree show one, driven by the same Push and Pop events.
+    void draw_pile(ImDrawList* draw, const std::vector<int>& pile,
+                   float left, float baseline, float side, float gap, float font_size);
 
     // Draws text centred in a box, or nothing at all if it would not fit.
     void draw_centred_label(ImDrawList* draw, const std::string& text, float font_size,
