@@ -24,8 +24,14 @@ namespace dalnim {
                 return "marking " + std::to_string(e.index) + " " + mark_kind_name(e.kind);
             } else if constexpr (std::is_same_v<Kind, Unmark>) {
                 return "clearing " + std::string(mark_kind_name(e.kind)) + " from " + std::to_string(e.index);
-            } else {
+            } else if constexpr (std::is_same_v<Kind, Set>) {
                 return "setting " + std::to_string(e.index) + " to " + std::to_string(e.value);
+            } else if constexpr (std::is_same_v<Kind, Push>) {
+                return "pushing " + std::to_string(e.value);
+            } else if constexpr (std::is_same_v<Kind, Pop>) {
+                return "popping";
+            } else {
+                static_assert(sizeof(Kind) == 0, "unhandled event kind");
             }
         }, event);
     }

@@ -103,11 +103,11 @@ TEST_CASE("every algorithm names indices inside the array") {
         for (const dalnim::Event& e : run(input)) {
             std::visit([&](const auto& ev) {
                 using Kind = std::decay_t<decltype(ev)>;
-                if constexpr (std::is_same_v<Kind, dalnim::Compare> ||
-                              std::is_same_v<Kind, dalnim::Swap>) {
+                // Whatever an event names, it has to be a real slot in the array.
+                if constexpr (requires { ev.a; ev.b; }) {
                     CHECK(ev.a < input.size());
                     CHECK(ev.b < input.size());
-                } else {
+                } else if constexpr (requires { ev.index; }) {
                     CHECK(ev.index < input.size());
                 }
             }, e);

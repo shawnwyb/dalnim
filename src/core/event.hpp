@@ -38,7 +38,15 @@ namespace dalnim {
         MarkKind kind;
     };
 
-    using Event = std::variant<Compare, Swap, Highlight, Set, Mark, Unmark>;
+    struct Push {
+        int value;
+    };
+
+    struct Pop {
+
+    };
+
+    using Event = std::variant<Compare, Swap, Highlight, Set, Mark, Unmark, Push, Pop>;
 
     using EventLog = std::vector<Event>;
 

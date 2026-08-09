@@ -72,3 +72,18 @@ TEST_CASE("a description is never empty") {
         CHECK(dalnim::describe(e).empty() == false);
     }
 }
+
+TEST_CASE("stack events describe themselves") {
+    CHECK(dalnim::describe(dalnim::Push{.value=7}) == "pushing 7");
+    CHECK(dalnim::describe(dalnim::Pop{}) == "popping");
+}
+
+TEST_CASE("an event with no fields still fits in the log") {
+    dalnim::EventLog log;
+    log.push_back(dalnim::Push{.value=7});
+    log.push_back(dalnim::Pop{});
+
+    CHECK(log.size() == 2);
+    CHECK(std::holds_alternative<dalnim::Pop>(log[1]));
+    CHECK(std::get<dalnim::Push>(log[0]).value == 7);
+}
