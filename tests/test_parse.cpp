@@ -39,3 +39,42 @@ TEST_CASE("a value too large for an int is skipped, not truncated") {
 TEST_CASE("a single value parses") {
     CHECK(parse_int_list("42") == std::vector<int>{42});
 }
+
+TEST_CASE("an empty grid parses to nothing") {
+    const dalnim::Grid g = dalnim::parse_grid("");
+    CHECK(g.width == 0);
+    CHECK(g.height == 0);
+    CHECK(g.cells.empty());
+}
+
+TEST_CASE("one line per row") {
+    const dalnim::Grid g = dalnim::parse_grid("1 2 3\n4 5 6");
+    CHECK(g.width == 3);
+    CHECK(g.height == 2);
+    CHECK(g.cells == std::vector<int>{1, 2, 3, 4, 5, 6});
+}
+
+TEST_CASE("commas work in a grid too") {
+    const dalnim::Grid g = dalnim::parse_grid("1,2\n3,4");
+    CHECK(g.cells == std::vector<int>{1, 2, 3, 4});
+}
+
+TEST_CASE("blank lines are skipped") {
+    const dalnim::Grid g = dalnim::parse_grid("\n1 2\n\n3 4\n\n");
+    CHECK(g.height == 2);
+    CHECK(g.cells == std::vector<int>{1, 2, 3, 4});
+}
+
+TEST_CASE("short rows are padded with zeroes") {
+    const dalnim::Grid g = dalnim::parse_grid("1 2 3\n4");
+    CHECK(g.width == 3);
+    CHECK(g.height == 2);
+    CHECK(g.cells == std::vector<int>{1, 2, 3, 4, 0, 0});
+}
+
+TEST_CASE("a parsed grid is always rectangular") {
+    const dalnim::Grid g = dalnim::parse_grid("1\n2 3 4 5\n6 7");
+    CHECK(dalnim::grid_is_well_formed(g));
+    CHECK(g.width == 4);
+    CHECK(g.height == 3);
+}

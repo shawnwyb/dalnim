@@ -6,7 +6,7 @@ add_library(dalnim_core STATIC
     algos/flood_fill.cpp
     grid.cpp
     grid_layout.cpp
-    layout.cpp
+    array_layout.cpp
     parse.cpp
     ease.cpp
 )

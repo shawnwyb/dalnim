@@ -5,7 +5,6 @@
 
 namespace dalnim {
     inline constexpr double kBoxSpacing = 60.0;
-    inline constexpr double kSecondsPerEvent = 0.3;
 
     struct ComparePair {
         double begin = 0.0;

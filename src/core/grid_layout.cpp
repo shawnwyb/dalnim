@@ -1,6 +1,5 @@
 #include "core/grid_layout.hpp"
 #include <utility>
-#include "core/layout.hpp"
 
 namespace dalnim {
     GridAnimation build_grid_animation(Grid initial, EventLog log) {

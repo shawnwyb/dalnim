@@ -2,6 +2,8 @@
 #include <charconv>
 #include <cstddef>
 #include <system_error>
+#include <utility>
+#include <vector>
 
 namespace dalnim {
 namespace {
@@ -41,5 +43,39 @@ std::vector<int> parse_int_list(std::string_view text) {
     }
 
     return out;
+}
+
+Grid parse_grid(std::string_view text) {
+    std::vector<std::vector<int>> rows;
+    std::size_t start = 0;
+
+    while (start <= text.size()) {
+        const std::size_t newline = text.find('\n', start);
+        const std::size_t stop = newline == std::string_view::npos ? text.size() : newline;
+
+        std::vector<int> row = parse_int_list(text.substr(start, stop - start));
+        if (!row.empty()) {
+            rows.push_back(std::move(row));
+        }
+
+        if (newline == std::string_view::npos) {
+            break;
+        }
+        start = newline + 1;
+    }
+
+    Grid grid;
+    for (const std::vector<int>& row : rows) {
+        grid.width = row.size() > grid.width ? row.size() : grid.width;
+    }
+    grid.height = rows.size();
+    grid.cells.assign(grid.width * grid.height, 0);
+
+    for (std::size_t r = 0; r < rows.size(); ++r) {
+        for (std::size_t c = 0; c < rows[r].size(); ++c) {
+            grid.cells[r * grid.width + c] = rows[r][c];
+        }
+    }
+    return grid;
 }
 }

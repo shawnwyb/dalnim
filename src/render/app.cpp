@@ -12,10 +12,9 @@
 #include <string>
 #include <vector>
 
-#include "core/algos/flood_fill.hpp"
 #include "core/algos/registry.hpp"
 #include "core/grid_layout.hpp"
-#include "core/layout.hpp"
+#include "core/array_layout.hpp"
 #include "core/parse.hpp"
 #include "render/camera.hpp"
 
@@ -38,28 +37,8 @@ namespace {
 
     enum class Mode { Array, Grid };
 
-    Grid default_grid() {
-        return Grid{.width = 8, .height = 6, .cells = {
-            0, 0, 0, 0, 9, 0, 0, 0,
-            0, 9, 9, 0, 9, 0, 9, 0,
-            0, 9, 0, 0, 0, 0, 9, 0,
-            0, 9, 0, 9, 9, 0, 9, 0,
-            0, 0, 0, 9, 0, 0, 0, 0,
-            9, 9, 0, 9, 0, 9, 9, 0,
-        }};
-    }
-
-    // One extra menu entry past the array algorithms, for the one grid algorithm.
-    std::size_t menu_size() {
-        return algorithms().size() + 1;
-    }
-
-    const char* menu_name(std::size_t i) {
-        return i < algorithms().size() ? algorithms()[i].name : "flood fill";
-    }
-
-    Mode menu_mode(std::size_t i) {
-        return i < algorithms().size() ? Mode::Array : Mode::Grid;
+    Mode mode_of(std::size_t i) {
+        return wants_array(algorithms()[i]) ? Mode::Array : Mode::Grid;
     }
 
     // ImGui's dark theme with its blue accents replaced by greys.
@@ -82,6 +61,14 @@ namespace {
 
     struct AppState {
         char input[128] = "5, 3, 8, 1, 9, 2";
+        char grid_input[512] =
+            "0 0 0 0 9 0 0 0\n"
+            "0 9 9 0 9 0 9 0\n"
+            "0 9 0 0 0 0 9 0\n"
+            "0 9 0 9 9 0 9 0\n"
+            "0 0 0 9 0 0 0 0\n"
+            "9 9 0 9 0 9 9 0";
+        int grid_start = 0;
         std::size_t algorithm = 0;
         Mode mode = Mode::Array;
         std::vector<int> values;
@@ -97,22 +84,25 @@ namespace {
     }
 
     void rebuild(AppState& state) {
-        state.mode = menu_mode(state.algorithm);
+        const Algorithm& algo = algorithms()[state.algorithm];
+        state.mode = mode_of(state.algorithm);
         state.t = 0.0;
         state.playing = true;
 
-        if (state.mode == Mode::Grid) {
-            const Grid grid = default_grid();
-            state.grid_anim = build_grid_animation(grid, flood_fill(grid, 0, 1));
+        if (const auto* run = std::get_if<GridAlgorithm>(&algo.run)) {
+            const Grid grid = parse_grid(state.grid_input);
+            const auto start = static_cast<std::size_t>(state.grid_start < 0 ? 0 : state.grid_start);
+            state.grid_anim = build_grid_animation(grid, (*run)(grid, start));
             return;
         }
 
+        const auto run = std::get<ArrayAlgorithm>(algo.run);
         state.values = parse_int_list(state.input);
         state.truncated = state.values.size() > kMaxValues;
         if (state.truncated) {
             state.values.resize(kMaxValues);
         }
-        state.anim = build_array_animation(state.values, algorithms()[state.algorithm].run(state.values));
+        state.anim = build_array_animation(state.values, run(state.values));
     }
 
     double row_span(std::size_t count) {
@@ -236,10 +226,10 @@ namespace {
         ImGui::Begin("dalnim");
 
         ImGui::SetNextItemWidth(-60.0f);
-        if (ImGui::BeginCombo("##algorithm", menu_name(state.algorithm))) {
-            for (std::size_t i = 0; i < menu_size(); ++i) {
+        if (ImGui::BeginCombo("##algorithm", algorithms()[state.algorithm].name)) {
+            for (std::size_t i = 0; i < algorithms().size(); ++i) {
                 const bool chosen = i == state.algorithm;
-                if (ImGui::Selectable(menu_name(i), chosen)) {
+                if (ImGui::Selectable(algorithms()[i].name, chosen)) {
                     state.algorithm = i;
                     rebuild(state);
                 }
@@ -256,10 +246,15 @@ namespace {
                                  ImGuiInputTextFlags_EnterReturnsTrue)) {
                 rebuild(state);
             }
-            ImGui::SameLine();
-            if (ImGui::Button("run")) {
-                rebuild(state);
-            }
+        } else {
+            ImGui::InputTextMultiline("##grid", state.grid_input, sizeof(state.grid_input),
+                                      ImVec2(-70.0f, ImGui::GetTextLineHeight() * 7.0f));
+            ImGui::SetNextItemWidth(-70.0f);
+            ImGui::InputInt("start cell", &state.grid_start);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("run")) {
+            rebuild(state);
         }
 
         if (ImGui::Button(state.playing ? "pause" : "play")) {

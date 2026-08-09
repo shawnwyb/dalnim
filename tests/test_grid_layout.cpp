@@ -3,7 +3,6 @@
 #include <vector>
 #include "core/algos/flood_fill.hpp"
 #include "core/grid_layout.hpp"
-#include "core/layout.hpp"
 
 using dalnim::kSecondsPerEvent;
 

@@ -1,4 +1,4 @@
-#include "core/layout.hpp"
+#include "core/array_layout.hpp"
 #include <cstddef>
 #include <numeric>
 #include <utility>

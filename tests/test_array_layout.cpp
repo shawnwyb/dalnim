@@ -1,7 +1,7 @@
 #include <doctest/doctest.h>
 #include <vector>
 #include "core/algos/bubble_sort.hpp"
-#include "core/layout.hpp"
+#include "core/array_layout.hpp"
 
 using dalnim::kBoxSpacing;
 using dalnim::kSecondsPerEvent;

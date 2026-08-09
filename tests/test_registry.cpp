@@ -21,6 +21,34 @@ TEST_CASE("the registry is not empty") {
     CHECK(dalnim::algorithms().size() >= 2);
 }
 
+TEST_CASE("the registry holds both array and grid algorithms") {
+    bool any_array = false;
+    bool any_grid = false;
+    for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
+        (dalnim::wants_array(algo) ? any_array : any_grid) = true;
+    }
+    CHECK(any_array);
+    CHECK(any_grid);
+}
+
+TEST_CASE("every grid algorithm's log replays to a fully explored region") {
+    const dalnim::Grid grid{.width = 3, .height = 3, .cells = std::vector<int>(9, 0)};
+    for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
+        if (dalnim::wants_array(algo)) {
+            continue;
+        }
+        CAPTURE(algo.name);
+        const auto run = std::get<dalnim::GridAlgorithm>(algo.run);
+        const dalnim::EventLog log = run(grid, 0);
+        CHECK(log.empty() == false);
+        for (const dalnim::Event& e : log) {
+            if (const auto* s = std::get_if<dalnim::Set>(&e)) {
+                CHECK(s->index < grid.cells.size());
+            }
+        }
+    }
+}
+
 TEST_CASE("every algorithm has a name") {
     for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
         REQUIRE(algo.name != nullptr);
@@ -50,11 +78,15 @@ TEST_CASE("every algorithm's log replays to a sorted array") {
     };
 
     for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
+        if (!dalnim::wants_array(algo)) {
+            continue;
+        }
         CAPTURE(algo.name);
+        const auto run = std::get<dalnim::ArrayAlgorithm>(algo.run);
         for (const std::vector<int>& input : inputs) {
             std::vector<int> expected = input;
             std::sort(expected.begin(), expected.end());
-            CHECK(replay(input, algo.run(input)) == expected);
+            CHECK(replay(input, run(input)) == expected);
         }
     }
 }
@@ -63,8 +95,12 @@ TEST_CASE("every algorithm names indices inside the array") {
     const std::vector<int> input{5, 3, 8, 1, 9, 2};
 
     for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
+        if (!dalnim::wants_array(algo)) {
+            continue;
+        }
         CAPTURE(algo.name);
-        for (const dalnim::Event& e : algo.run(input)) {
+        const auto run = std::get<dalnim::ArrayAlgorithm>(algo.run);
+        for (const dalnim::Event& e : run(input)) {
             std::visit([&](const auto& ev) {
                 using Kind = std::decay_t<decltype(ev)>;
                 if constexpr (std::is_same_v<Kind, dalnim::Compare> ||
