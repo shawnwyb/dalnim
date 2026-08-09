@@ -5,6 +5,7 @@
 #include <vector>
 #include "core/event.hpp"
 #include "core/grid.hpp"
+#include "core/dp_table.hpp"
 #include "core/graph.hpp"
 #include "core/linked_list.hpp"
 #include "core/tree.hpp"
@@ -15,16 +16,17 @@ namespace dalnim {
     using TreeAlgorithm = EventLog (*)(Tree);
     using ListAlgorithm = EventLog (*)(LinkedList);
     using GraphAlgorithm = EventLog (*)(Graph, std::size_t start);
+    using DpAlgorithm = EventLog (*)(DpTable);
 
     // How a run should be pictured. Separate from the input shape, because two
     // algorithms can read the same input and still want different pictures.
-    enum class View { Bars, Grid, Stack, Tree, List, Graph };
+    enum class View { Bars, Grid, Stack, Tree, List, Graph, Dp };
 
     struct Algorithm {
         const char* name;
         View view;
         std::variant<ArrayAlgorithm, GridAlgorithm, TreeAlgorithm, ListAlgorithm,
-                     GraphAlgorithm> run;
+                     GraphAlgorithm, DpAlgorithm> run;
     };
 
     // Everything the app can offer, in menu order. Adding one is a line in registry.cpp.

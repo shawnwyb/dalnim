@@ -1,6 +1,7 @@
 #include "core/parse.hpp"
 #include <charconv>
 #include <cstddef>
+#include <string>
 #include <system_error>
 #include <utility>
 #include <vector>
@@ -43,6 +44,32 @@ std::vector<int> parse_int_list(std::string_view text) {
     }
 
     return out;
+}
+
+DpTable parse_dp_table(std::string_view text) {
+    DpTable table;
+    std::size_t start = 0;
+    int line = 0;
+
+    while (start <= text.size() && line < 2) {
+        const std::size_t newline = text.find('\n', start);
+        const std::size_t stop = newline == std::string_view::npos ? text.size() : newline;
+
+        std::string word;
+        for (std::size_t i = start; i < stop; ++i) {
+            if (text[i] != ' ' && text[i] != '\t' && text[i] != '\r') {
+                word.push_back(text[i]);
+            }
+        }
+        (line == 0 ? table.across : table.down) = word;
+        ++line;
+
+        if (newline == std::string_view::npos) {
+            break;
+        }
+        start = newline + 1;
+    }
+    return table;
 }
 
 Graph parse_graph(std::string_view text) {

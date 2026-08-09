@@ -25,6 +25,13 @@ namespace dalnim {
 
     std::optional<std::pair<std::size_t, std::size_t>> compared_at(const EventLog& log, double t);
 
+    // The most recent comparison, which holds until another one replaces it.
+    std::optional<std::pair<std::size_t, std::size_t>> sticky_compared_at(const EventLog& log,
+                                                                          double t);
+
+    // Which slots have been written to at all, however many times.
+    std::vector<bool> written_at(const EventLog& log, double t, std::size_t slots);
+
     std::vector<int> pile_at(const EventLog& log, double t);
 
     // The cells carrying `kind`, oldest first. Marks alone say which cells are in a

@@ -20,6 +20,7 @@ add_executable(dalnim_tests
     test_tree.cpp
     test_list.cpp
     test_graph.cpp
+    test_dp.cpp
     test_grid_layout.cpp
     test_array_layout.cpp
     test_camera.cpp

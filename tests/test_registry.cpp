@@ -38,7 +38,8 @@ TEST_CASE("the registry holds every kind of algorithm") {
 TEST_CASE("every view in the menu has at least one algorithm") {
     for (const dalnim::View view : {dalnim::View::Bars, dalnim::View::Grid,
                                     dalnim::View::Stack, dalnim::View::Tree,
-                                    dalnim::View::List, dalnim::View::Graph}) {
+                                    dalnim::View::List, dalnim::View::Graph,
+                                    dalnim::View::Dp}) {
         const bool found = std::any_of(dalnim::algorithms().begin(), dalnim::algorithms().end(),
                                        [&](const dalnim::Algorithm& a) { return a.view == view; });
         CHECK(found);

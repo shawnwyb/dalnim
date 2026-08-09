@@ -3,6 +3,7 @@
 #include "core/algos/bfs.hpp"
 #include "core/algos/monotonic_stack.hpp"
 #include "core/algos/cycle_detect.hpp"
+#include "core/algos/edit_distance.hpp"
 #include "core/algos/graph_bfs.hpp"
 #include "core/algos/tree_dfs.hpp"
 #include "core/algos/bubble_sort.hpp"
@@ -24,6 +25,7 @@ namespace {
         {"tree depth-first walk", View::Tree, TreeAlgorithm{&tree_dfs}},
         {"cycle detection", View::List, ListAlgorithm{&detect_cycle}},
         {"graph breadth-first search", View::Graph, GraphAlgorithm{&graph_bfs}},
+        {"edit distance", View::Dp, DpAlgorithm{&edit_distance}},
     };
 }
 

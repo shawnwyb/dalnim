@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include <vector>
+#include "core/dp_table.hpp"
 #include "core/graph.hpp"
 #include "core/grid.hpp"
 #include "core/tree.hpp"
@@ -21,4 +22,7 @@ namespace dalnim {
     // One line per node, listing the nodes it joins. A line with no numbers means a
     // node with no edges. Every edge is recorded at both ends, so order never matters.
     Graph parse_graph(std::string_view text);
+
+    // Two lines, the first word across the table and the second down it.
+    DpTable parse_dp_table(std::string_view text);
 }

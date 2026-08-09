@@ -18,12 +18,14 @@
 #include "core/grid_layout.hpp"
 #include "core/parse.hpp"
 #include "core/stack_layout.hpp"
+#include "core/dp_layout.hpp"
 #include "core/graph_layout.hpp"
 #include "core/list_layout.hpp"
 #include "core/tree_layout.hpp"
 #include "render/array_view.hpp"
 #include "render/grid_view.hpp"
 #include "render/stack_view.hpp"
+#include "render/dp_view.hpp"
 #include "render/graph_view.hpp"
 #include "render/list_view.hpp"
 #include "render/tree_view.hpp"
@@ -80,6 +82,7 @@ namespace {
             "1 5\n"
             "2 4";
         int graph_start = 0;
+        char dp_input[128] = "kitten\nsitting";
         char list_input[256] = "3 2 0 -4 7 9";
         int list_cycle_to = 2;
         std::size_t grid_start = 0;
@@ -92,6 +95,7 @@ namespace {
         TreeAnimation tree_anim;
         ListAnimation list_anim;
         GraphAnimation graph_anim;
+        DpAnimation dp_anim;
         double t = 0.0;
         float speed = 1.0f;
         bool playing = true;
@@ -106,6 +110,7 @@ namespace {
             case View::Tree: return state.tree_anim.log;
             case View::List: return state.list_anim.log;
             case View::Graph: return state.graph_anim.log;
+            case View::Dp: return state.dp_anim.log;
         }
         return state.anim.log;
     }
@@ -138,6 +143,12 @@ namespace {
         state.view = algo.view;
         state.t = 0.0;
         state.playing = true;
+
+        if (const auto* run = std::get_if<DpAlgorithm>(&algo.run)) {
+            const DpTable table = parse_dp_table(state.dp_input);
+            state.dp_anim = build_dp_animation(table, (*run)(table));
+            return;
+        }
 
         if (const auto* run = std::get_if<GraphAlgorithm>(&algo.run)) {
             const Graph graph = parse_graph(state.graph_input);
@@ -227,7 +238,11 @@ namespace {
         }
 
         ImGui::Spacing();
-        if (state.view == View::Graph) {
+        if (state.view == View::Dp) {
+            ImGui::TextUnformatted("two words, one per line");
+            ImGui::InputTextMultiline("##dp", state.dp_input, sizeof(state.dp_input),
+                                      ImVec2(-1.0f, ImGui::GetTextLineHeight() * 3.0f));
+        } else if (state.view == View::Graph) {
             ImGui::TextUnformatted("edges, one line per node");
             ImGui::InputTextMultiline("##graph", state.graph_input, sizeof(state.graph_input),
                                       ImVec2(-1.0f, ImGui::GetTextLineHeight() * 7.5f));
@@ -417,6 +432,9 @@ int run_app() {
                 break;
             case View::Graph:
                 draw_graph(state.graph_anim, state.t);
+                break;
+            case View::Dp:
+                draw_dp(state.dp_anim, state.t);
                 break;
             case View::Bars:
                 draw_array(state.values, state.anim, state.t);

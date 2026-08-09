@@ -21,17 +21,8 @@ namespace dalnim {
 
     std::optional<std::pair<std::size_t, std::size_t>> pointers_at(const ListAnimation& anim,
                                                                    double t) {
-        // The pointers hold their places between comparisons, so look backwards for
-        // the most recent one rather than only at this event.
-        std::optional<std::pair<std::size_t, std::size_t>> found;
-        for (std::size_t k = 0; k < anim.log.size(); ++k) {
-            if (t < static_cast<double>(k)) {
-                break;
-            }
-            if (const auto* c = std::get_if<Compare>(&anim.log[k])) {
-                found = std::pair{c->a, c->b};
-            }
-        }
-        return found;
+        // The pointers hold their places between comparisons rather than blinking
+        // out on the events in between.
+        return sticky_compared_at(anim.log, t);
     }
 }

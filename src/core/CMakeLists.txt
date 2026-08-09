@@ -14,6 +14,9 @@ add_library(dalnim_core STATIC
     algos/cycle_detect.cpp
     linked_list.cpp
     graph.cpp
+    dp_table.cpp
+    dp_layout.cpp
+    algos/edit_distance.cpp
     graph_layout.cpp
     algos/graph_bfs.cpp
     list_layout.cpp
