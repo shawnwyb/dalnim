@@ -8,7 +8,7 @@ namespace dalnim {
                                          const EventLog& log) {
         ArrayAnimation anim;
         anim.x.resize(input.size());
-        anim.duration = static_cast<double>(log.size()) * kSecondsPerEvent;
+        anim.duration = static_cast<double>(log.size());
 
         for (std::size_t i = 0; i < input.size(); ++i) {
             anim.x[i].add(0.0, static_cast<double>(i) * kBoxSpacing);
@@ -19,8 +19,8 @@ namespace dalnim {
         std::iota(box_at_slot.begin(), box_at_slot.end(), 0);
 
         for (std::size_t k = 0; k < log.size(); ++k) {
-            const double t0 = static_cast<double>(k) * kSecondsPerEvent;
-            const double t1 = t0 + kSecondsPerEvent;
+            const double t0 = static_cast<double>(k);
+            const double t1 = t0 + 1.0;
 
             if (const auto* c = std::get_if<Compare>(&log[k])) {
                 anim.compares.push_back(ComparePair{
@@ -51,6 +51,7 @@ namespace dalnim {
             std::swap(box_at_slot[s->a], box_at_slot[s->b]);
         }
 
+        anim.log = log;
         return anim;
     }
 

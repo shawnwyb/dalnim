@@ -53,3 +53,22 @@ TEST_CASE("an event log holds all four kinds") {
     CHECK(std::holds_alternative<dalnim::Highlight>(log[2]));
     CHECK(std::get<dalnim::Set>(log[3]).value == 7);
 }
+
+TEST_CASE("every event kind describes itself") {
+    CHECK(dalnim::describe(dalnim::Compare{.a=3, .b=5}) == "comparing 3 and 5");
+    CHECK(dalnim::describe(dalnim::Swap{.a=0, .b=1}) == "swapping 0 and 1");
+    CHECK(dalnim::describe(dalnim::Highlight{.index=12}) == "visiting 12");
+    CHECK(dalnim::describe(dalnim::Set{.index=12, .value=1}) == "setting 12 to 1");
+}
+
+TEST_CASE("a description is never empty") {
+    const dalnim::EventLog log{
+        dalnim::Compare{.a=0, .b=1},
+        dalnim::Swap{.a=0, .b=1},
+        dalnim::Highlight{.index=0},
+        dalnim::Set{.index=0, .value=-4},
+    };
+    for (const dalnim::Event& e : log) {
+        CHECK(dalnim::describe(e).empty() == false);
+    }
+}

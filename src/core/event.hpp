@@ -1,5 +1,7 @@
 #pragma once
 #include <cstddef>
+#include <string>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -27,7 +29,7 @@ namespace dalnim {
 
     using EventLog = std::vector<Event>;
 
-    // Event k owns the slot [k * kSecondsPerEvent, (k + 1) * kSecondsPerEvent).
-    // Every view reads a log through this one convention.
-    inline constexpr double kSecondsPerEvent = 0.3;
+    // Time is counted in events, not seconds: event k owns the span [k, k + 1).
+    // How fast an event should pass on screen is the renderer's business.
+    std::string describe(const Event& event);
 }

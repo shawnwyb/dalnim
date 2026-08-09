@@ -4,7 +4,6 @@
 #include "core/array_layout.hpp"
 
 using dalnim::kBoxSpacing;
-using dalnim::kSecondsPerEvent;
 
 TEST_CASE("one timeline per box") {
     auto anim = dalnim::build_array_animation({5, 3, 8}, {});
@@ -26,7 +25,7 @@ TEST_CASE("duration is one step per event, compares included") {
         dalnim::Swap{.a=0, .b=1},
     };
     auto anim = dalnim::build_array_animation({2, 1}, log);
-    CHECK(anim.duration == doctest::Approx(2 * kSecondsPerEvent));
+    CHECK(anim.duration == doctest::Approx(2 * 1.0));
 }
 
 TEST_CASE("a swap slides both boxes into each other's slot") {
@@ -36,8 +35,8 @@ TEST_CASE("a swap slides both boxes into each other's slot") {
     CHECK(anim.x[0].sample(0.0) == doctest::Approx(0.0));
     CHECK(anim.x[1].sample(0.0) == doctest::Approx(kBoxSpacing));
 
-    CHECK(anim.x[0].sample(kSecondsPerEvent) == doctest::Approx(kBoxSpacing));
-    CHECK(anim.x[1].sample(kSecondsPerEvent) == doctest::Approx(0.0));
+    CHECK(anim.x[0].sample(1.0) == doctest::Approx(kBoxSpacing));
+    CHECK(anim.x[1].sample(1.0) == doctest::Approx(0.0));
 }
 
 TEST_CASE("mid-swap both boxes sit halfway") {
@@ -45,8 +44,8 @@ TEST_CASE("mid-swap both boxes sit halfway") {
     auto anim = dalnim::build_array_animation({2, 1}, log);
 
     const double halfway = kBoxSpacing / 2.0;
-    CHECK(anim.x[0].sample(kSecondsPerEvent / 2.0) == doctest::Approx(halfway));
-    CHECK(anim.x[1].sample(kSecondsPerEvent / 2.0) == doctest::Approx(halfway));
+    CHECK(anim.x[0].sample(1.0 / 2.0) == doctest::Approx(halfway));
+    CHECK(anim.x[1].sample(1.0 / 2.0) == doctest::Approx(halfway));
 }
 
 TEST_CASE("a box moved twice ends in the right slot") {
@@ -56,7 +55,7 @@ TEST_CASE("a box moved twice ends in the right slot") {
     };
     auto anim = dalnim::build_array_animation({3, 2, 1}, log);
 
-    const double end = 2 * kSecondsPerEvent;
+    const double end = 2 * 1.0;
     CHECK(anim.x[0].sample(end) == doctest::Approx(2 * kBoxSpacing));
     CHECK(anim.x[1].sample(end) == doctest::Approx(0.0));
     CHECK(anim.x[2].sample(end) == doctest::Approx(kBoxSpacing));
@@ -69,7 +68,7 @@ TEST_CASE("a box waits in place until its own swap begins") {
     };
     auto anim = dalnim::build_array_animation({3, 2, 1}, log);
 
-    CHECK(anim.x[2].sample(kSecondsPerEvent) == doctest::Approx(2 * kBoxSpacing));
+    CHECK(anim.x[2].sample(1.0) == doctest::Approx(2 * kBoxSpacing));
 }
 
 TEST_CASE("every box lands on a distinct slot at the end of a real sort") {
@@ -92,7 +91,7 @@ TEST_CASE("a compare is recorded as a time span over two boxes") {
 
     REQUIRE(anim.compares.size() == 1);
     CHECK(anim.compares[0].begin == doctest::Approx(0.0));
-    CHECK(anim.compares[0].end == doctest::Approx(kSecondsPerEvent));
+    CHECK(anim.compares[0].end == doctest::Approx(1.0));
     CHECK(anim.compares[0].box_a == 0);
     CHECK(anim.compares[0].box_b == 1);
 }
@@ -101,8 +100,8 @@ TEST_CASE("nothing is compared outside a compare span") {
     dalnim::EventLog log{dalnim::Compare{.a=0, .b=1}};
     auto anim = dalnim::build_array_animation({2, 1}, log);
 
-    CHECK(dalnim::compare_at(anim, kSecondsPerEvent / 2.0) != nullptr);
-    CHECK(dalnim::compare_at(anim, kSecondsPerEvent) == nullptr);
+    CHECK(dalnim::compare_at(anim, 1.0 / 2.0) != nullptr);
+    CHECK(dalnim::compare_at(anim, 1.0) == nullptr);
     CHECK(dalnim::compare_at(anim, 99.0) == nullptr);
 }
 
@@ -113,7 +112,7 @@ TEST_CASE("a compare after a swap names the boxes now in those slots") {
     };
     auto anim = dalnim::build_array_animation({2, 1}, log);
 
-    const auto* c = dalnim::compare_at(anim, 1.5 * kSecondsPerEvent);
+    const auto* c = dalnim::compare_at(anim, 1.5 * 1.0);
     REQUIRE(c != nullptr);
     CHECK(c->box_a == 1);
     CHECK(c->box_b == 0);
@@ -123,4 +122,15 @@ TEST_CASE("swaps are not recorded as compares") {
     dalnim::EventLog log{dalnim::Swap{.a=0, .b=1}};
     auto anim = dalnim::build_array_animation({2, 1}, log);
     CHECK(anim.compares.empty());
+}
+
+TEST_CASE("the animation keeps the log it was built from") {
+    dalnim::EventLog log{
+        dalnim::Compare{.a=0, .b=1},
+        dalnim::Swap{.a=0, .b=1},
+    };
+    auto anim = dalnim::build_array_animation({2, 1}, log);
+    REQUIRE(anim.log.size() == 2);
+    CHECK(std::holds_alternative<dalnim::Compare>(anim.log[0]));
+    CHECK(std::holds_alternative<dalnim::Swap>(anim.log[1]));
 }

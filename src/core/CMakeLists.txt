@@ -5,6 +5,7 @@ add_library(dalnim_core STATIC
     algos/registry.cpp
     algos/flood_fill.cpp
     grid.cpp
+    event.cpp
     grid_layout.cpp
     array_layout.cpp
     parse.cpp

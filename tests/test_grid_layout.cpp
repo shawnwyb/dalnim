@@ -4,7 +4,6 @@
 #include "core/algos/flood_fill.hpp"
 #include "core/grid_layout.hpp"
 
-using dalnim::kSecondsPerEvent;
 
 namespace {
     dalnim::Grid make(std::size_t width, std::size_t height, std::vector<int> cells) {
@@ -15,7 +14,7 @@ namespace {
 TEST_CASE("duration is one slot per event") {
     auto grid = make(2, 2, {0, 0, 0, 0});
     auto anim = dalnim::build_grid_animation(grid, dalnim::flood_fill(grid, 0, 1));
-    CHECK(anim.duration == doctest::Approx(anim.log.size() * kSecondsPerEvent));
+    CHECK(anim.duration == doctest::Approx(anim.log.size() * 1.0));
 }
 
 TEST_CASE("an empty log leaves the grid untouched forever") {
@@ -52,8 +51,8 @@ TEST_CASE("a write lands at the end of its own slot") {
     auto anim = dalnim::build_grid_animation(grid, dalnim::flood_fill(grid, 0, 1));
     REQUIRE(anim.log.size() == 2);
 
-    CHECK(dalnim::grid_values_at(anim, 1.5 * kSecondsPerEvent) == std::vector<int>{0});
-    CHECK(dalnim::grid_values_at(anim, 2.0 * kSecondsPerEvent) == std::vector<int>{1});
+    CHECK(dalnim::grid_values_at(anim, 1.5 * 1.0) == std::vector<int>{0});
+    CHECK(dalnim::grid_values_at(anim, 2.0 * 1.0) == std::vector<int>{1});
 }
 
 TEST_CASE("the highlight lasts exactly its own slot") {
@@ -61,8 +60,8 @@ TEST_CASE("the highlight lasts exactly its own slot") {
     auto anim = dalnim::build_grid_animation(grid, dalnim::flood_fill(grid, 0, 1));
 
     CHECK(dalnim::highlighted_at(anim, 0.0) == 0);
-    CHECK(dalnim::highlighted_at(anim, 0.5 * kSecondsPerEvent) == 0);
-    CHECK(dalnim::highlighted_at(anim, 1.0 * kSecondsPerEvent).has_value() == false);
+    CHECK(dalnim::highlighted_at(anim, 0.5 * 1.0) == 0);
+    CHECK(dalnim::highlighted_at(anim, 1.0 * 1.0).has_value() == false);
 }
 
 TEST_CASE("scrubbing backwards gives the same answer as playing forwards") {
@@ -70,7 +69,7 @@ TEST_CASE("scrubbing backwards gives the same answer as playing forwards") {
     auto anim = dalnim::build_grid_animation(grid, dalnim::flood_fill(grid, 0, 1));
 
     std::vector<double> times;
-    for (double t = 0.0; t <= anim.duration; t += kSecondsPerEvent / 3.0) {
+    for (double t = 0.0; t <= anim.duration; t += 1.0 / 3.0) {
         times.push_back(t);
     }
 
@@ -89,7 +88,7 @@ TEST_CASE("every step writes at most one more cell than the step before") {
     auto anim = dalnim::build_grid_animation(grid, dalnim::flood_fill(grid, 4, 1));
 
     std::size_t previous = 0;
-    for (double t = 0.0; t <= anim.duration; t += kSecondsPerEvent) {
+    for (double t = 0.0; t <= anim.duration; t += 1.0) {
         const std::vector<int> cells = dalnim::grid_values_at(anim, t);
         const auto filled = static_cast<std::size_t>(std::count(cells.begin(), cells.end(), 1));
         CHECK(filled >= previous);

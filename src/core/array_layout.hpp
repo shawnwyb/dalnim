@@ -16,6 +16,7 @@ namespace dalnim {
     struct ArrayAnimation {
         std::vector<Timeline> x;
         std::vector<ComparePair> compares;
+        EventLog log;
         double duration = 0.0;
     };
 
