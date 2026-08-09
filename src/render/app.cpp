@@ -8,10 +8,13 @@
 #include <algorithm>
 #include <cfloat>
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include "core/algos/flood_fill.hpp"
 #include "core/algos/registry.hpp"
+#include "core/grid_layout.hpp"
 #include "core/layout.hpp"
 #include "core/parse.hpp"
 #include "render/camera.hpp"
@@ -30,6 +33,34 @@ namespace {
     constexpr float kBottomMargin = 50.0f;
     constexpr float kShortestBar = 0.18f;
     constexpr float kSmallestReadableFont = 9.0f;
+    constexpr double kCellUnits = 48.0;
+    constexpr double kCellPitch = 54.0;
+
+    enum class Mode { Array, Grid };
+
+    Grid default_grid() {
+        return Grid{.width = 8, .height = 6, .cells = {
+            0, 0, 0, 0, 9, 0, 0, 0,
+            0, 9, 9, 0, 9, 0, 9, 0,
+            0, 9, 0, 0, 0, 0, 9, 0,
+            0, 9, 0, 9, 9, 0, 9, 0,
+            0, 0, 0, 9, 0, 0, 0, 0,
+            9, 9, 0, 9, 0, 9, 9, 0,
+        }};
+    }
+
+    // One extra menu entry past the array algorithms, for the one grid algorithm.
+    std::size_t menu_size() {
+        return algorithms().size() + 1;
+    }
+
+    const char* menu_name(std::size_t i) {
+        return i < algorithms().size() ? algorithms()[i].name : "flood fill";
+    }
+
+    Mode menu_mode(std::size_t i) {
+        return i < algorithms().size() ? Mode::Array : Mode::Grid;
+    }
 
     // ImGui's dark theme with its blue accents replaced by greys.
     void apply_theme() {
@@ -52,23 +83,36 @@ namespace {
     struct AppState {
         char input[128] = "5, 3, 8, 1, 9, 2";
         std::size_t algorithm = 0;
+        Mode mode = Mode::Array;
         std::vector<int> values;
         ArrayAnimation anim;
+        GridAnimation grid_anim;
         double t = 0.0;
         bool playing = true;
         bool truncated = false;
     };
 
+    double duration_of(const AppState& state) {
+        return state.mode == Mode::Array ? state.anim.duration : state.grid_anim.duration;
+    }
+
     void rebuild(AppState& state) {
+        state.mode = menu_mode(state.algorithm);
+        state.t = 0.0;
+        state.playing = true;
+
+        if (state.mode == Mode::Grid) {
+            const Grid grid = default_grid();
+            state.grid_anim = build_grid_animation(grid, flood_fill(grid, 0, 1));
+            return;
+        }
+
         state.values = parse_int_list(state.input);
         state.truncated = state.values.size() > kMaxValues;
         if (state.truncated) {
             state.values.resize(kMaxValues);
         }
-        const Algorithm& algo = algorithms()[state.algorithm];
-        state.anim = build_array_animation(state.values, algo.run(state.values));
-        state.t = 0.0;
-        state.playing = true;
+        state.anim = build_array_animation(state.values, algorithms()[state.algorithm].run(state.values));
     }
 
     double row_span(std::size_t count) {
@@ -130,16 +174,72 @@ namespace {
         }
     }
 
+    ImU32 cell_fill(int value, bool lit) {
+        if (lit) {
+            return IM_COL32(250, 204, 21, 255);
+        }
+        if (value == 0) {
+            return IM_COL32(20, 20, 20, 255);
+        }
+        if (value == 1) {
+            return IM_COL32(236, 236, 236, 255);
+        }
+        return IM_COL32(88, 88, 88, 255);
+    }
+
+    void draw_grid(const AppState& state) {
+        const Grid& grid = state.grid_anim.initial;
+        if (grid.width == 0 || grid.height == 0) {
+            return;
+        }
+
+        const ImVec2 screen = ImGui::GetIO().DisplaySize;
+        const double span_x = static_cast<double>(grid.width) * kCellPitch - (kCellPitch - kCellUnits);
+        const double span_y = static_cast<double>(grid.height) * kCellPitch - (kCellPitch - kCellUnits);
+        const Camera camera = fit_box(span_x, span_y, screen.x, screen.y,
+                                      kSideMargin, kTopMargin, kMinScale);
+
+        const std::vector<int> cells = grid_values_at(state.grid_anim, state.t);
+        const std::optional<std::size_t> lit = highlighted_at(state.grid_anim, state.t);
+        const float side = camera.length(kCellUnits);
+        const float font_size = ImGui::GetFontSize() * camera.scale;
+
+        ImDrawList* draw = ImGui::GetBackgroundDrawList();
+        ImFont* font = ImGui::GetFont();
+
+        for (std::size_t i = 0; i < cells.size(); ++i) {
+            const std::size_t row = i / grid.width;
+            const std::size_t col = i % grid.width;
+            const ImVec2 top_left{camera.x(static_cast<double>(col) * kCellPitch),
+                                  camera.y(static_cast<double>(row) * kCellPitch)};
+            const ImVec2 bottom_right{top_left.x + side, top_left.y + side};
+
+            const bool is_lit = lit.has_value() && *lit == i;
+            draw->AddRectFilled(top_left, bottom_right, cell_fill(cells[i], is_lit), 4.0f * camera.scale);
+            draw->AddRect(top_left, bottom_right, IM_COL32(255, 255, 255, 255),
+                          4.0f * camera.scale, 0, is_lit ? 2.5f : 1.0f);
+
+            const std::string label = std::to_string(cells[i]);
+            const ImVec2 size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, label.c_str());
+            if (font_size >= kSmallestReadableFont && size.x <= side) {
+                const ImVec2 at{top_left.x + (side - size.x) * 0.5f,
+                                top_left.y + (side - size.y) * 0.5f};
+                const ImU32 ink = (cells[i] == 0 && !is_lit) ? IM_COL32_WHITE : IM_COL32_BLACK;
+                draw->AddText(font, font_size, at, ink, label.c_str());
+            }
+        }
+    }
+
     void draw_panel(AppState& state) {
         ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500.0f, 0.0f), ImGuiCond_FirstUseEver);
         ImGui::Begin("dalnim");
 
         ImGui::SetNextItemWidth(-60.0f);
-        if (ImGui::BeginCombo("##algorithm", algorithms()[state.algorithm].name)) {
-            for (std::size_t i = 0; i < algorithms().size(); ++i) {
+        if (ImGui::BeginCombo("##algorithm", menu_name(state.algorithm))) {
+            for (std::size_t i = 0; i < menu_size(); ++i) {
                 const bool chosen = i == state.algorithm;
-                if (ImGui::Selectable(algorithms()[i].name, chosen)) {
+                if (ImGui::Selectable(menu_name(i), chosen)) {
                     state.algorithm = i;
                     rebuild(state);
                 }
@@ -150,19 +250,21 @@ namespace {
             ImGui::EndCombo();
         }
 
-        ImGui::SetNextItemWidth(-60.0f);
-        if (ImGui::InputText("##input", state.input, sizeof(state.input),
-                             ImGuiInputTextFlags_EnterReturnsTrue)) {
-            rebuild(state);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("run")) {
-            rebuild(state);
+        if (state.mode == Mode::Array) {
+            ImGui::SetNextItemWidth(-60.0f);
+            if (ImGui::InputText("##input", state.input, sizeof(state.input),
+                                 ImGuiInputTextFlags_EnterReturnsTrue)) {
+                rebuild(state);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("run")) {
+                rebuild(state);
+            }
         }
 
         if (ImGui::Button(state.playing ? "pause" : "play")) {
             state.playing = !state.playing;
-            if (state.playing && state.t >= state.anim.duration) {
+            if (state.playing && state.t >= duration_of(state)) {
                 state.t = 0.0;
             }
         }
@@ -172,7 +274,9 @@ namespace {
             state.playing = true;
         }
         ImGui::SameLine();
-        if (state.truncated) {
+        if (state.mode == Mode::Grid) {
+            ImGui::Text("%zux%zu grid", state.grid_anim.initial.width, state.grid_anim.initial.height);
+        } else if (state.truncated) {
             ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.35f, 1.0f),
                                "%zu values (capped at %zu)", state.values.size(), kMaxValues);
         } else {
@@ -182,7 +286,7 @@ namespace {
         float scrubbed = static_cast<float>(state.t);
         ImGui::SetNextItemWidth(-1.0f);
         if (ImGui::SliderFloat("##t", &scrubbed, 0.0f,
-                               static_cast<float>(state.anim.duration), "%.2f s")) {
+                               static_cast<float>(duration_of(state)), "%.2f s")) {
             state.t = scrubbed;
             state.playing = false;
         }
@@ -231,8 +335,8 @@ int run_app() {
 
         if (state.playing) {
             state.t += dt;
-            if (state.t >= state.anim.duration) {
-                state.t = state.anim.duration;
+            if (state.t >= duration_of(state)) {
+                state.t = duration_of(state);
                 state.playing = false;
             }
         }
@@ -240,7 +344,11 @@ int run_app() {
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        draw_bars(state);
+        if (state.mode == Mode::Grid) {
+            draw_grid(state);
+        } else {
+            draw_bars(state);
+        }
         draw_panel(state);
         ImGui::Render();
 
