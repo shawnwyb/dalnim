@@ -10,10 +10,13 @@ namespace dalnim {
     using ArrayAlgorithm = EventLog (*)(std::vector<int>);
     using GridAlgorithm = EventLog (*)(Grid, std::size_t start);
 
-    // Which shape of input an algorithm wants is part of the algorithm, not a
-    // separate flag, so the two can never disagree.
+    // How a run should be pictured. Separate from the input shape, because two
+    // algorithms can read the same input and still want different pictures.
+    enum class View { Bars, Grid, Stack };
+
     struct Algorithm {
         const char* name;
+        View view;
         std::variant<ArrayAlgorithm, GridAlgorithm> run;
     };
 

@@ -1,6 +1,7 @@
 #include "core/algos/registry.hpp"
 #include <utility>
 #include "core/algos/bfs.hpp"
+#include "core/algos/monotonic_stack.hpp"
 #include "core/algos/bubble_sort.hpp"
 #include "core/algos/flood_fill.hpp"
 #include "core/algos/selection_sort.hpp"
@@ -12,10 +13,11 @@ namespace {
     }
 
     constexpr Algorithm kAll[] = {
-        {"bubble sort", ArrayAlgorithm{&bubble_sort}},
-        {"selection sort", ArrayAlgorithm{&selection_sort}},
-        {"flood fill", GridAlgorithm{&flood_fill_with_one}},
-        {"breadth-first search", GridAlgorithm{&bfs}},
+        {"bubble sort", View::Bars, ArrayAlgorithm{&bubble_sort}},
+        {"selection sort", View::Bars, ArrayAlgorithm{&selection_sort}},
+        {"next greater element", View::Stack, ArrayAlgorithm{&next_greater}},
+        {"flood fill", View::Grid, GridAlgorithm{&flood_fill_with_one}},
+        {"breadth-first search", View::Grid, GridAlgorithm{&bfs}},
     };
 }
 

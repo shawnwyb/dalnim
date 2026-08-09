@@ -17,8 +17,10 @@
 #include "core/array_layout.hpp"
 #include "core/grid_layout.hpp"
 #include "core/parse.hpp"
+#include "core/stack_layout.hpp"
 #include "render/array_view.hpp"
 #include "render/grid_view.hpp"
+#include "render/stack_view.hpp"
 #include "render/stage.hpp"
 
 namespace dalnim {
@@ -32,12 +34,6 @@ namespace {
     constexpr double kTargetSeconds = 8.0;
     constexpr double kFastestEvent = 0.05;
     constexpr double kSlowestEvent = 0.60;
-
-    enum class Mode { Array, Grid };
-
-    Mode mode_of(std::size_t i) {
-        return wants_array(algorithms()[i]) ? Mode::Array : Mode::Grid;
-    }
 
     // ImGui's dark theme with its blue accents replaced by greys.
     void apply_theme() {
@@ -71,10 +67,11 @@ namespace {
             "9 9 0 9 0 9 9 0";
         std::size_t grid_start = 0;
         std::size_t algorithm = 0;
-        Mode mode = Mode::Array;
+        View view = View::Bars;
         std::vector<int> values;
         ArrayAnimation anim;
         GridAnimation grid_anim;
+        StackAnimation stack_anim;
         double t = 0.0;
         float speed = 1.0f;
         bool playing = true;
@@ -82,12 +79,17 @@ namespace {
     };
 
     const EventLog& log_of(const AppState& state) {
-        return state.mode == Mode::Array ? state.anim.log : state.grid_anim.log;
+        switch (state.view) {
+            case View::Bars: return state.anim.log;
+            case View::Grid: return state.grid_anim.log;
+            case View::Stack: return state.stack_anim.log;
+        }
+        return state.anim.log;
     }
 
     // Time is counted in events, so the duration is simply how many there are.
     double total_events(const AppState& state) {
-        return state.mode == Mode::Array ? state.anim.duration : state.grid_anim.duration;
+        return static_cast<double>(log_of(state).size());
     }
 
     double seconds_per_event(const AppState& state) {
@@ -110,7 +112,7 @@ namespace {
 
     void rebuild(AppState& state) {
         const Algorithm& algo = algorithms()[state.algorithm];
-        state.mode = mode_of(state.algorithm);
+        state.view = algo.view;
         state.t = 0.0;
         state.playing = true;
 
@@ -129,7 +131,11 @@ namespace {
         if (state.truncated) {
             state.values.resize(kMaxValues);
         }
-        state.anim = build_array_animation(state.values, run(state.values));
+        if (state.view == View::Stack) {
+            state.stack_anim = build_stack_animation(state.values, run(state.values));
+        } else {
+            state.anim = build_array_animation(state.values, run(state.values));
+        }
     }
 
     void step(AppState& state, int delta) {
@@ -174,7 +180,7 @@ namespace {
         }
 
         ImGui::Spacing();
-        if (state.mode == Mode::Array) {
+        if (state.view != View::Grid) {
             ImGui::TextUnformatted("values");
             ImGui::SetNextItemWidth(-1.0f);
             if (ImGui::InputText("##input", state.input, sizeof(state.input),
@@ -246,7 +252,7 @@ namespace {
         ImGui::Separator();
         ImGui::TextDisabled("yellow marks what the algorithm");
         ImGui::TextDisabled("is touching right now.");
-        if (state.mode == Mode::Grid) {
+        if (state.view == View::Grid) {
             ImGui::TextDisabled("0 is open, anything else is a");
             ImGui::TextDisabled("wall. dark grey is queued,");
             ImGui::TextDisabled("light grey is already seen.");
@@ -322,13 +328,19 @@ int run_app() {
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
-        if (state.mode == Mode::Grid) {
-            if (const auto clicked = draw_grid(state.grid_anim, state.t, state.grid_start)) {
-                state.grid_start = *clicked;
-                rebuild(state);
-            }
-        } else {
-            draw_array(state.values, state.anim, state.t);
+        switch (state.view) {
+            case View::Grid:
+                if (const auto clicked = draw_grid(state.grid_anim, state.t, state.grid_start)) {
+                    state.grid_start = *clicked;
+                    rebuild(state);
+                }
+                break;
+            case View::Stack:
+                draw_stack(state.stack_anim, state.t);
+                break;
+            case View::Bars:
+                draw_array(state.values, state.anim, state.t);
+                break;
         }
         draw_sidebar(state);
         handle_keys(state);

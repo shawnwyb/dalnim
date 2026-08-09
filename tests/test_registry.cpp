@@ -65,7 +65,10 @@ TEST_CASE("no two algorithms share a name") {
     CHECK(std::adjacent_find(names.begin(), names.end()) == names.end());
 }
 
-TEST_CASE("every algorithm's log replays to a sorted array") {
+// Bars is the view for sorting, so it stands in for "this algorithm sorts". The
+// registry does not record that claim directly; if a non-sorting algorithm ever
+// wants bars, this needs a real flag rather than a proxy.
+TEST_CASE("every bar-view algorithm's log replays to a sorted array") {
     const std::vector<std::vector<int>> inputs{
         {},
         {7},
@@ -78,10 +81,11 @@ TEST_CASE("every algorithm's log replays to a sorted array") {
     };
 
     for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
-        if (!dalnim::wants_array(algo)) {
+        if (algo.view != dalnim::View::Bars) {
             continue;
         }
-        CAPTURE(algo.name);
+        const std::string name = algo.name;
+        CAPTURE(name);
         const auto run = std::get<dalnim::ArrayAlgorithm>(algo.run);
         for (const std::vector<int>& input : inputs) {
             std::vector<int> expected = input;
@@ -98,7 +102,8 @@ TEST_CASE("every algorithm names indices inside the array") {
         if (!dalnim::wants_array(algo)) {
             continue;
         }
-        CAPTURE(algo.name);
+        const std::string name = algo.name;
+        CAPTURE(name);
         const auto run = std::get<dalnim::ArrayAlgorithm>(algo.run);
         for (const dalnim::Event& e : run(input)) {
             std::visit([&](const auto& ev) {

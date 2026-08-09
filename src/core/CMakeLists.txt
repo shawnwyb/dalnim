@@ -5,6 +5,8 @@ add_library(dalnim_core STATIC
     algos/registry.cpp
     algos/flood_fill.cpp
     algos/bfs.cpp
+    algos/monotonic_stack.cpp
+    stack_layout.cpp
     grid.cpp
     event.cpp
     grid_layout.cpp
