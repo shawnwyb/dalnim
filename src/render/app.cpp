@@ -50,6 +50,8 @@ namespace {
     constexpr ImU32 kLitEdge = IM_COL32(255, 232, 130, 255);
     constexpr ImU32 kEmpty = IM_COL32(20, 20, 20, 255);
     constexpr ImU32 kWall = IM_COL32(88, 88, 88, 255);
+    constexpr ImU32 kFrontier = IM_COL32(112, 112, 112, 255);
+    constexpr ImU32 kVisited = IM_COL32(196, 196, 196, 255);
 
     enum class Mode { Array, Grid };
 
@@ -239,14 +241,35 @@ namespace {
         }
     }
 
-    ImU32 cell_fill(int value, bool lit) {
+    // Whatever the algorithm is touching right now wins, then any lasting mark,
+    // then the cell's own value.
+    ImU32 cell_fill(int value, bool lit, std::optional<MarkKind> mark) {
         if (lit) {
+            return kLit;
+        }
+        if (mark == MarkKind::Visited) {
+            return kVisited;
+        }
+        if (mark == MarkKind::Frontier) {
+            return kFrontier;
+        }
+        if (mark == MarkKind::Answer) {
             return kLit;
         }
         if (value == 0) {
             return kEmpty;
         }
         return value == 1 ? kInk : kWall;
+    }
+
+    bool fill_is_dark(int value, bool lit, std::optional<MarkKind> mark) {
+        if (lit || mark == MarkKind::Answer || mark == MarkKind::Visited) {
+            return false;
+        }
+        if (mark == MarkKind::Frontier) {
+            return true;
+        }
+        return value == 0;
     }
 
     // Returns the cell the mouse just clicked, so the caller can move the start there.
@@ -268,6 +291,7 @@ namespace {
         camera.origin_x += left;
 
         const std::vector<int> cells = grid_values_at(state.grid_anim, state.t);
+        const std::vector<std::optional<MarkKind>> marks = marks_at(state.grid_anim, state.t);
         const std::optional<std::size_t> lit = highlighted_at(state.grid_anim, state.t);
         const float side = camera.length(kCellUnits);
         const float font_size = ImGui::GetFontSize() * camera.scale;
@@ -293,7 +317,8 @@ namespace {
             const bool is_lit = lit.has_value() && *lit == i;
             const bool is_start = i == state.grid_start;
 
-            draw->AddRectFilled(top_left, bottom_right, cell_fill(cells[i], is_lit), 4.0f * camera.scale);
+            draw->AddRectFilled(top_left, bottom_right, cell_fill(cells[i], is_lit, marks[i]),
+                                4.0f * camera.scale);
             draw->AddRect(top_left, bottom_right, hovered ? kLitEdge : kEdge,
                           4.0f * camera.scale, 0, (is_lit || hovered) ? 2.5f : 1.0f);
             if (is_start) {
@@ -302,7 +327,7 @@ namespace {
                               kLitEdge, 5.0f * camera.scale, 0, 1.5f);
             }
 
-            const ImU32 ink = (cells[i] == 0 && !is_lit) ? kEdge : IM_COL32_BLACK;
+            const ImU32 ink = fill_is_dark(cells[i], is_lit, marks[i]) ? kEdge : IM_COL32_BLACK;
             draw_centred_label(draw, std::to_string(cells[i]), font_size, top_left, side, side, ink);
         }
 
@@ -411,8 +436,9 @@ namespace {
         ImGui::TextDisabled("yellow marks what the algorithm");
         ImGui::TextDisabled("is touching right now.");
         if (state.mode == Mode::Grid) {
-            ImGui::TextDisabled("0 is open, 1 is filled, anything");
-            ImGui::TextDisabled("else is a wall.");
+            ImGui::TextDisabled("0 is open, anything else is a");
+            ImGui::TextDisabled("wall. dark grey is queued,");
+            ImGui::TextDisabled("light grey is already seen.");
         }
         ImGui::TextDisabled("space plays, arrows step.");
 

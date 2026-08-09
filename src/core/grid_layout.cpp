@@ -26,6 +26,25 @@ namespace dalnim {
         return cells;
     }
 
+    std::vector<std::optional<MarkKind>> marks_at(const GridAnimation& anim, double t) {
+        std::vector<std::optional<MarkKind>> marks(anim.initial.cells.size());
+        for (std::size_t k = 0; k < anim.log.size(); ++k) {
+            if (t < static_cast<double>(k + 1)) {
+                break;
+            }
+            if (const auto* m = std::get_if<Mark>(&anim.log[k])) {
+                if (m->index < marks.size()) {
+                    marks[m->index] = m->kind;
+                }
+            } else if (const auto* u = std::get_if<Unmark>(&anim.log[k])) {
+                if (u->index < marks.size() && marks[u->index] == u->kind) {
+                    marks[u->index].reset();
+                }
+            }
+        }
+        return marks;
+    }
+
     std::optional<std::size_t> highlighted_at(const GridAnimation& anim, double t) {
         for (std::size_t k = 0; k < anim.log.size(); ++k) {
             const double begin = static_cast<double>(k);

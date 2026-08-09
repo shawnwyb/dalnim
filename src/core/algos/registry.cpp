@@ -1,5 +1,6 @@
 #include "core/algos/registry.hpp"
 #include <utility>
+#include "core/algos/bfs.hpp"
 #include "core/algos/bubble_sort.hpp"
 #include "core/algos/flood_fill.hpp"
 #include "core/algos/selection_sort.hpp"
@@ -14,6 +15,7 @@ namespace {
         {"bubble sort", ArrayAlgorithm{&bubble_sort}},
         {"selection sort", ArrayAlgorithm{&selection_sort}},
         {"flood fill", GridAlgorithm{&flood_fill_with_one}},
+        {"breadth-first search", GridAlgorithm{&bfs}},
     };
 }
 

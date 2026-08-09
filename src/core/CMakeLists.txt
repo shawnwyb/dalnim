@@ -4,6 +4,7 @@ add_library(dalnim_core STATIC
     algos/selection_sort.cpp
     algos/registry.cpp
     algos/flood_fill.cpp
+    algos/bfs.cpp
     grid.cpp
     event.cpp
     grid_layout.cpp

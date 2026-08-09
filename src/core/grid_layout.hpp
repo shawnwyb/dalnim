@@ -19,4 +19,7 @@ namespace dalnim {
     std::vector<int> grid_values_at(const GridAnimation& anim, double t);
 
     std::optional<std::size_t> highlighted_at(const GridAnimation& anim, double t);
+
+    // One mark per cell, the most recent one wins. Empty where nothing is marked.
+    std::vector<std::optional<MarkKind>> marks_at(const GridAnimation& anim, double t);
 }
