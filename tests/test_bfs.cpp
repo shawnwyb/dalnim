@@ -133,3 +133,72 @@ TEST_CASE("mark events describe themselves") {
     CHECK(dalnim::describe(dalnim::Unmark{.index = 3, .kind = dalnim::MarkKind::Frontier}) ==
           "clearing frontier from 3");
 }
+
+TEST_CASE("the queue is empty before the run and after it") {
+    auto grid = make(3, 3, std::vector<int>(9, 0));
+    auto anim = dalnim::build_grid_animation(grid, dalnim::bfs(grid, 0));
+
+    CHECK(dalnim::frontier_at(anim, 0.0).empty());
+    CHECK(dalnim::frontier_at(anim, anim.duration).empty());
+}
+
+TEST_CASE("a cell joins the queue before it is taken off") {
+    auto grid = make(3, 3, std::vector<int>(9, 0));
+    auto anim = dalnim::build_grid_animation(grid, dalnim::bfs(grid, 0));
+
+    // the start is queued by the first event, so it is waiting right after it
+    CHECK(dalnim::frontier_at(anim, 1.0) == std::vector<std::size_t>{0});
+}
+
+TEST_CASE("the queue keeps the order cells were added in") {
+    auto grid = make(3, 3, std::vector<int>(9, 0));
+    auto anim = dalnim::build_grid_animation(grid, dalnim::bfs(grid, 0));
+
+    std::vector<std::size_t> seen_leaving;
+    std::vector<std::size_t> previous;
+    for (double t = 0.0; t <= anim.duration; t += 1.0) {
+        const std::vector<std::size_t> now = dalnim::frontier_at(anim, t);
+        // whatever left the queue since the last look must have been at its front
+        if (!previous.empty() && (now.empty() || now.front() != previous.front())) {
+            seen_leaving.push_back(previous.front());
+        }
+        previous = now;
+    }
+
+    // BFS takes cells in distance order, so the departures are the visit order
+    std::vector<std::size_t> visits;
+    for (const dalnim::Event& e : anim.log) {
+        if (const auto* m = std::get_if<dalnim::Mark>(&e)) {
+            if (m->kind == dalnim::MarkKind::Visited) {
+                visits.push_back(m->index);
+            }
+        }
+    }
+    CHECK(seen_leaving.size() > 0);
+    for (std::size_t i = 0; i < seen_leaving.size(); ++i) {
+        CHECK(seen_leaving[i] == visits[i]);
+    }
+}
+
+TEST_CASE("no cell is in the queue twice") {
+    auto grid = make(4, 4, std::vector<int>(16, 0));
+    auto anim = dalnim::build_grid_animation(grid, dalnim::bfs(grid, 0));
+
+    for (double t = 0.0; t <= anim.duration; t += 1.0) {
+        std::vector<std::size_t> waiting = dalnim::frontier_at(anim, t);
+        std::sort(waiting.begin(), waiting.end());
+        CHECK(std::adjacent_find(waiting.begin(), waiting.end()) == waiting.end());
+    }
+}
+
+TEST_CASE("the queue never holds a cell already visited") {
+    auto grid = make(3, 3, std::vector<int>(9, 0));
+    auto anim = dalnim::build_grid_animation(grid, dalnim::bfs(grid, 0));
+
+    for (double t = 0.0; t <= anim.duration; t += 1.0) {
+        const auto marks = dalnim::marks_at(anim, t);
+        for (std::size_t cell : dalnim::frontier_at(anim, t)) {
+            CHECK(marks[cell] != dalnim::MarkKind::Visited);
+        }
+    }
+}

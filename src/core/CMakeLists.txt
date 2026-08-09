@@ -11,6 +11,9 @@ add_library(dalnim_core STATIC
     tree.cpp
     tree_layout.cpp
     algos/tree_dfs.cpp
+    algos/cycle_detect.cpp
+    linked_list.cpp
+    list_layout.cpp
     grid.cpp
     event.cpp
     grid_layout.cpp

@@ -18,10 +18,12 @@
 #include "core/grid_layout.hpp"
 #include "core/parse.hpp"
 #include "core/stack_layout.hpp"
+#include "core/list_layout.hpp"
 #include "core/tree_layout.hpp"
 #include "render/array_view.hpp"
 #include "render/grid_view.hpp"
 #include "render/stack_view.hpp"
+#include "render/list_view.hpp"
 #include "render/tree_view.hpp"
 #include "render/stage.hpp"
 
@@ -68,6 +70,8 @@ namespace {
             "0 0 0 9 0 0 0 0\n"
             "9 9 0 9 0 9 9 0";
         char tree_input[256] = "8 3 10 1 6 . 14 . . 4 7 . . 13 .";
+        char list_input[256] = "3 2 0 -4 7 9";
+        int list_cycle_to = 2;
         std::size_t grid_start = 0;
         std::size_t algorithm = 0;
         View view = View::Bars;
@@ -76,6 +80,7 @@ namespace {
         GridAnimation grid_anim;
         StackAnimation stack_anim;
         TreeAnimation tree_anim;
+        ListAnimation list_anim;
         double t = 0.0;
         float speed = 1.0f;
         bool playing = true;
@@ -88,6 +93,7 @@ namespace {
             case View::Grid: return state.grid_anim.log;
             case View::Stack: return state.stack_anim.log;
             case View::Tree: return state.tree_anim.log;
+            case View::List: return state.list_anim.log;
         }
         return state.anim.log;
     }
@@ -120,6 +126,17 @@ namespace {
         state.view = algo.view;
         state.t = 0.0;
         state.playing = true;
+
+        if (const auto* run = std::get_if<ListAlgorithm>(&algo.run)) {
+            LinkedList list;
+            list.values = parse_int_list(state.list_input);
+            if (state.list_cycle_to >= 0 &&
+                static_cast<std::size_t>(state.list_cycle_to) < list.values.size()) {
+                list.cycle_to = static_cast<std::size_t>(state.list_cycle_to);
+            }
+            state.list_anim = build_list_animation(list, (*run)(list));
+            return;
+        }
 
         if (const auto* run = std::get_if<TreeAlgorithm>(&algo.run)) {
             const Tree tree = parse_tree(state.tree_input);
@@ -191,7 +208,17 @@ namespace {
         }
 
         ImGui::Spacing();
-        if (state.view == View::Tree) {
+        if (state.view == View::List) {
+            ImGui::TextUnformatted("nodes");
+            ImGui::SetNextItemWidth(-1.0f);
+            if (ImGui::InputText("##list", state.list_input, sizeof(state.list_input),
+                                 ImGuiInputTextFlags_EnterReturnsTrue)) {
+                rebuild(state);
+            }
+            ImGui::SetNextItemWidth(-70.0f);
+            ImGui::InputInt("loops to", &state.list_cycle_to);
+            ImGui::TextDisabled("-1 for no loop");
+        } else if (state.view == View::Tree) {
             ImGui::TextUnformatted("tree, slot order");
             ImGui::SetNextItemWidth(-1.0f);
             if (ImGui::InputText("##tree", state.tree_input, sizeof(state.tree_input),
@@ -359,6 +386,9 @@ int run_app() {
                 break;
             case View::Tree:
                 draw_tree(state.tree_anim, state.t);
+                break;
+            case View::List:
+                draw_list(state.list_anim, state.t);
                 break;
             case View::Bars:
                 draw_array(state.values, state.anim, state.t);

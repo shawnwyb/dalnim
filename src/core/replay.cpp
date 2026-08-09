@@ -1,4 +1,5 @@
 #include "core/replay.hpp"
+#include <algorithm>
 
 namespace dalnim {
 namespace {
@@ -78,6 +79,32 @@ std::optional<std::pair<std::size_t, std::size_t>> compared_at(const EventLog& l
         return std::pair{c->a, c->b};
     }
     return std::nullopt;
+}
+
+std::vector<std::size_t> marked_in_order_at(const EventLog& log, double t, MarkKind kind) {
+    std::vector<std::size_t> waiting;
+    const std::size_t stop = landed(log, t);
+
+    for (std::size_t k = 0; k < stop; ++k) {
+        if (const auto* m = std::get_if<Mark>(&log[k])) {
+            if (m->kind != kind) {
+                continue;
+            }
+            // A cell already in the line does not join it a second time.
+            if (std::find(waiting.begin(), waiting.end(), m->index) == waiting.end()) {
+                waiting.push_back(m->index);
+            }
+        } else if (const auto* u = std::get_if<Unmark>(&log[k])) {
+            if (u->kind != kind) {
+                continue;
+            }
+            const auto at = std::find(waiting.begin(), waiting.end(), u->index);
+            if (at != waiting.end()) {
+                waiting.erase(at);
+            }
+        }
+    }
+    return waiting;
 }
 
 std::vector<int> pile_at(const EventLog& log, double t) {

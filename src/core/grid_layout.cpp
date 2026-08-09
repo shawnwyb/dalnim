@@ -19,6 +19,10 @@ namespace dalnim {
         return marks_at(anim.log, t, anim.initial.cells.size());
     }
 
+    std::vector<std::size_t> frontier_at(const GridAnimation& anim, double t) {
+        return marked_in_order_at(anim.log, t, MarkKind::Frontier);
+    }
+
     std::optional<std::size_t> highlighted_at(const GridAnimation& anim, double t) {
         return highlight_at(anim.log, t);
     }

@@ -26,4 +26,8 @@ namespace dalnim {
     std::optional<std::pair<std::size_t, std::size_t>> compared_at(const EventLog& log, double t);
 
     std::vector<int> pile_at(const EventLog& log, double t);
+
+    // The cells carrying `kind`, oldest first. Marks alone say which cells are in a
+    // waiting line; their order says where in the line each one is.
+    std::vector<std::size_t> marked_in_order_at(const EventLog& log, double t, MarkKind kind);
 }

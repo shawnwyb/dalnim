@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,39 @@ namespace {
     constexpr ImU32 kWall = IM_COL32(88, 88, 88, 255);
     constexpr ImU32 kFrontier = IM_COL32(112, 112, 112, 255);
     constexpr ImU32 kVisited = IM_COL32(196, 196, 196, 255);
+
+    constexpr float kQueueSide = 30.0f;
+    constexpr float kQueueGap = 4.0f;
+    constexpr std::size_t kQueueShown = 12;
+
+    // The waiting line, oldest on the left, so the next cell to be taken is nearest
+    // the arrow. Long queues are cut off rather than run off the screen.
+    void draw_queue(ImDrawList* draw, const std::vector<std::size_t>& waiting) {
+        const float left = kSidebarWidth + 24.0f;
+        const float top = ImGui::GetIO().DisplaySize.y - 54.0f;
+        const float font_size = ImGui::GetFontSize() * 0.85f;
+
+        draw->AddText(ImVec2(left, top - 20.0f), kEdge, "queue");
+
+        const std::size_t shown = waiting.size() < kQueueShown ? waiting.size() : kQueueShown;
+        for (std::size_t slot = 0; slot < shown; ++slot) {
+            const float x = left + static_cast<float>(slot) * (kQueueSide + kQueueGap);
+            const ImVec2 top_left{x, top};
+            const ImVec2 bottom_right{x + kQueueSide, top + kQueueSide};
+            const bool next_out = slot == 0;
+
+            draw->AddRectFilled(top_left, bottom_right, next_out ? kInk : kFrontier, 4.0f);
+            draw->AddRect(top_left, bottom_right, kEdge, 4.0f, 0, next_out ? 2.0f : 1.0f);
+            draw_centred_label(draw, std::to_string(waiting[slot]), font_size,
+                               top_left, kQueueSide, kQueueSide,
+                               next_out ? IM_COL32_BLACK : kEdge);
+        }
+
+        if (waiting.size() > shown) {
+            const float x = left + static_cast<float>(shown) * (kQueueSide + kQueueGap);
+            draw->AddText(ImVec2(x, top + 8.0f), kEdge, "...");
+        }
+    }
 
     // Whatever the algorithm is touching right now wins, then any lasting mark,
     // then the cell's own value.
@@ -103,6 +137,7 @@ std::optional<std::size_t> draw_grid(const GridAnimation& anim, double t, std::s
         draw_centred_label(draw, std::to_string(cells[i]), font_size, top_left, side, side, ink);
     }
 
+    draw_queue(draw, frontier_at(anim, t));
     return clicked;
 }
 }

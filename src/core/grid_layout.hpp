@@ -22,4 +22,7 @@ namespace dalnim {
 
     // One mark per cell, the most recent one wins. Empty where nothing is marked.
     std::vector<std::optional<MarkKind>> marks_at(const GridAnimation& anim, double t);
+
+    // Cells waiting to be looked at, oldest first: the algorithm's own queue.
+    std::vector<std::size_t> frontier_at(const GridAnimation& anim, double t);
 }
