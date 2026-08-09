@@ -1,4 +1,5 @@
 #include "core/event.hpp"
+#include <type_traits>
 
 namespace dalnim {
     std::string describe(const Event& event) {
