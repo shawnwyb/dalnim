@@ -34,12 +34,15 @@ TEST_CASE("the registry holds both array and grid algorithms") {
 TEST_CASE("every grid algorithm's log replays to a fully explored region") {
     const dalnim::Grid grid{.width = 3, .height = 3, .cells = std::vector<int>(9, 0)};
     for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
-        if (dalnim::wants_array(algo)) {
+        // Asking for the pointer, rather than for anything-that-is-not-an-array,
+        // stays correct as more kinds of algorithm arrive.
+        const auto* run = std::get_if<dalnim::GridAlgorithm>(&algo.run);
+        if (run == nullptr) {
             continue;
         }
-        CAPTURE(algo.name);
-        const auto run = std::get<dalnim::GridAlgorithm>(algo.run);
-        const dalnim::EventLog log = run(grid, 0);
+        const std::string name = algo.name;
+        CAPTURE(name);
+        const dalnim::EventLog log = (*run)(grid, 0);
         CHECK(log.empty() == false);
         for (const dalnim::Event& e : log) {
             if (const auto* s = std::get_if<dalnim::Set>(&e)) {
@@ -99,13 +102,13 @@ TEST_CASE("every algorithm names indices inside the array") {
     const std::vector<int> input{5, 3, 8, 1, 9, 2};
 
     for (const dalnim::Algorithm& algo : dalnim::algorithms()) {
-        if (!dalnim::wants_array(algo)) {
+        const auto* run = std::get_if<dalnim::ArrayAlgorithm>(&algo.run);
+        if (run == nullptr) {
             continue;
         }
         const std::string name = algo.name;
         CAPTURE(name);
-        const auto run = std::get<dalnim::ArrayAlgorithm>(algo.run);
-        for (const dalnim::Event& e : run(input)) {
+        for (const dalnim::Event& e : (*run)(input)) {
             std::visit([&](const auto& ev) {
                 using Kind = std::decay_t<decltype(ev)>;
                 // Whatever an event names, it has to be a real slot in the array.

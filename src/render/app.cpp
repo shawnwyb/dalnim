@@ -18,9 +18,11 @@
 #include "core/grid_layout.hpp"
 #include "core/parse.hpp"
 #include "core/stack_layout.hpp"
+#include "core/tree_layout.hpp"
 #include "render/array_view.hpp"
 #include "render/grid_view.hpp"
 #include "render/stack_view.hpp"
+#include "render/tree_view.hpp"
 #include "render/stage.hpp"
 
 namespace dalnim {
@@ -65,6 +67,7 @@ namespace {
             "0 9 0 9 9 0 9 0\n"
             "0 0 0 9 0 0 0 0\n"
             "9 9 0 9 0 9 9 0";
+        char tree_input[256] = "8 3 10 1 6 . 14 . . 4 7 . . 13 .";
         std::size_t grid_start = 0;
         std::size_t algorithm = 0;
         View view = View::Bars;
@@ -72,6 +75,7 @@ namespace {
         ArrayAnimation anim;
         GridAnimation grid_anim;
         StackAnimation stack_anim;
+        TreeAnimation tree_anim;
         double t = 0.0;
         float speed = 1.0f;
         bool playing = true;
@@ -83,6 +87,7 @@ namespace {
             case View::Bars: return state.anim.log;
             case View::Grid: return state.grid_anim.log;
             case View::Stack: return state.stack_anim.log;
+            case View::Tree: return state.tree_anim.log;
         }
         return state.anim.log;
     }
@@ -115,6 +120,12 @@ namespace {
         state.view = algo.view;
         state.t = 0.0;
         state.playing = true;
+
+        if (const auto* run = std::get_if<TreeAlgorithm>(&algo.run)) {
+            const Tree tree = parse_tree(state.tree_input);
+            state.tree_anim = build_tree_animation(tree, (*run)(tree));
+            return;
+        }
 
         if (const auto* run = std::get_if<GridAlgorithm>(&algo.run)) {
             const Grid grid = parse_grid(state.grid_input);
@@ -180,7 +191,15 @@ namespace {
         }
 
         ImGui::Spacing();
-        if (state.view != View::Grid) {
+        if (state.view == View::Tree) {
+            ImGui::TextUnformatted("tree, slot order");
+            ImGui::SetNextItemWidth(-1.0f);
+            if (ImGui::InputText("##tree", state.tree_input, sizeof(state.tree_input),
+                                 ImGuiInputTextFlags_EnterReturnsTrue)) {
+                rebuild(state);
+            }
+            ImGui::TextDisabled("a dot means no node there");
+        } else if (state.view != View::Grid) {
             ImGui::TextUnformatted("values");
             ImGui::SetNextItemWidth(-1.0f);
             if (ImGui::InputText("##input", state.input, sizeof(state.input),
@@ -337,6 +356,9 @@ int run_app() {
                 break;
             case View::Stack:
                 draw_stack(state.stack_anim, state.t);
+                break;
+            case View::Tree:
+                draw_tree(state.tree_anim, state.t);
                 break;
             case View::Bars:
                 draw_array(state.values, state.anim, state.t);

@@ -45,6 +45,38 @@ std::vector<int> parse_int_list(std::string_view text) {
     return out;
 }
 
+Tree parse_tree(std::string_view text) {
+    Tree tree;
+    std::size_t i = 0;
+
+    while (i < text.size()) {
+        while (i < text.size() && (text[i] == ' ' || text[i] == ',' ||
+                                   text[i] == '\n' || text[i] == '\t' || text[i] == '\r')) {
+            ++i;
+        }
+        if (i >= text.size()) {
+            break;
+        }
+
+        const std::size_t start = i;
+        while (i < text.size() && text[i] != ' ' && text[i] != ',' &&
+               text[i] != '\n' && text[i] != '\t' && text[i] != '\r') {
+            ++i;
+        }
+
+        const std::vector<int> parsed = parse_int_list(text.substr(start, i - start));
+        tree.values.push_back(parsed.empty() ? 0 : parsed.front());
+        tree.present.push_back(!parsed.empty());
+    }
+
+    // Trailing empties describe nothing, so drop them.
+    while (!tree.present.empty() && !tree.present.back()) {
+        tree.present.pop_back();
+        tree.values.pop_back();
+    }
+    return tree;
+}
+
 Grid parse_grid(std::string_view text) {
     std::vector<std::vector<int>> rows;
     std::size_t start = 0;

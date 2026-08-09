@@ -7,6 +7,10 @@ add_library(dalnim_core STATIC
     algos/bfs.cpp
     algos/monotonic_stack.cpp
     stack_layout.cpp
+    replay.cpp
+    tree.cpp
+    tree_layout.cpp
+    algos/tree_dfs.cpp
     grid.cpp
     event.cpp
     grid_layout.cpp

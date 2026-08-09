@@ -17,6 +17,7 @@ add_executable(dalnim_tests
     test_flood_fill.cpp
     test_bfs.cpp
     test_stack.cpp
+    test_tree.cpp
     test_grid_layout.cpp
     test_array_layout.cpp
     test_camera.cpp
