@@ -36,7 +36,7 @@ void draw_dp(const DpAnimation& anim, double t) {
     const double span_y = static_cast<double>(height + 1) * kCellPitch;
     const Camera camera = fit_box_on_stage(span_x, span_y);
     const float side = camera.length(kCellUnits);
-    const float font_size = ImGui::GetFontSize() * camera.scale;
+    const float font_size = ImGui::GetFontSize() * kLabelScale * camera.scale;
 
     const std::vector<int> values = dp_values_at(anim, t);
     const std::vector<bool> filled = dp_filled_at(anim, t);

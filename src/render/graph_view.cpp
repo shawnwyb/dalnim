@@ -66,7 +66,7 @@ void draw_graph(const GraphAnimation& anim, double t) {
 
     const Camera camera = fit_box_on_stage(anim.span, anim.span);
     const float radius = camera.length(kGraphNodeUnits) * 0.5f;
-    const float font_size = ImGui::GetFontSize() * camera.scale;
+    const float font_size = ImGui::GetFontSize() * kLabelScale * camera.scale;
 
     const std::vector<std::optional<MarkKind>> marks = graph_marks_at(anim, t);
     const std::optional<std::size_t> lit = graph_highlight_at(anim, t);

@@ -15,6 +15,11 @@ namespace dalnim {
     inline constexpr float kMinScale = 0.12f;
     inline constexpr float kSmallestReadableFont = 9.0f;
 
+    // Numbers on the stage are drawn larger than the sidebar text, which is sized
+    // for reading up close. A label that outgrows its shape is dropped, not shrunk,
+    // so raising this trades a little legibility against a few missing numbers.
+    inline constexpr float kLabelScale = 1.5f;
+
     inline constexpr ImU32 kInk = IM_COL32(236, 236, 236, 255);
     inline constexpr ImU32 kEdge = IM_COL32(255, 255, 255, 255);
     inline constexpr ImU32 kLit = IM_COL32(250, 204, 21, 255);

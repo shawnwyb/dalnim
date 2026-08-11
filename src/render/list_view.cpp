@@ -36,7 +36,7 @@ void draw_list(const ListAnimation& anim, double t) {
     const ImVec2 screen = ImGui::GetIO().DisplaySize;
     const Camera camera = fit_row_on_stage(anim.span_x);
     const float side = camera.length(kListNodeUnits);
-    const float font_size = ImGui::GetFontSize() * camera.scale;
+    const float font_size = ImGui::GetFontSize() * kLabelScale * camera.scale;
     const float row_y = screen.y * 0.45f;
 
     const std::vector<std::optional<MarkKind>> marks = list_marks_at(anim, t);

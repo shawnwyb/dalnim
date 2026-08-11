@@ -98,7 +98,7 @@ std::optional<std::size_t> draw_grid(const GridAnimation& anim, double t, std::s
     const std::vector<std::optional<MarkKind>> marks = marks_at(anim, t);
     const std::optional<std::size_t> lit = highlighted_at(anim, t);
     const float side = camera.length(kCellUnits);
-    const float font_size = ImGui::GetFontSize() * camera.scale;
+    const float font_size = ImGui::GetFontSize() * kLabelScale * camera.scale;
 
     ImDrawList* draw = ImGui::GetBackgroundDrawList();
     const ImVec2 mouse = ImGui::GetMousePos();

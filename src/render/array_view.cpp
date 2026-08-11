@@ -41,7 +41,7 @@ void draw_array(const std::vector<int>& values, const ArrayAnimation& anim, doub
     const float bar_width = camera.length(kBoxUnits);
     const float baseline = screen.y - kStageBottom;
     const float tallest = baseline - kStageTop;
-    const float font_size = ImGui::GetFontSize() * camera.scale;
+    const float font_size = ImGui::GetFontSize() * kLabelScale * camera.scale;
 
     const auto bounds = std::minmax_element(values.begin(), values.end());
     ImDrawList* draw = ImGui::GetBackgroundDrawList();

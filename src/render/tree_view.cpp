@@ -27,7 +27,7 @@ void draw_tree(const TreeAnimation& anim, double t) {
     const Camera camera = fit_box_on_stage(anim.span_x + 2.0 * kNodeRadius,
                                            anim.span_y + 2.0 * kNodeRadius);
     const float radius = camera.length(kNodeRadius);
-    const float font_size = ImGui::GetFontSize() * camera.scale;
+    const float font_size = ImGui::GetFontSize() * kLabelScale * camera.scale;
 
     const std::vector<std::optional<MarkKind>> marks = tree_marks_at(anim, t);
     const std::optional<std::size_t> lit = tree_highlight_at(anim, t);

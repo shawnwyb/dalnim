@@ -41,7 +41,7 @@ void draw_stack(const StackAnimation& anim, double t) {
     const ImVec2 screen = ImGui::GetIO().DisplaySize;
     const Camera camera = fit_row_on_stage(row_span(count));
     const float side = camera.length(kCellUnits);
-    const float font_size = ImGui::GetFontSize() * camera.scale;
+    const float font_size = ImGui::GetFontSize() * kLabelScale * camera.scale;
 
     const std::optional<std::size_t> cursor = cursor_at(anim, t);
     const auto comparing = comparing_at(anim, t);
