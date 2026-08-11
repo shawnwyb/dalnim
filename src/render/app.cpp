@@ -335,13 +335,13 @@ namespace {
         }
 
         ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::TextDisabled("yellow marks what the algorithm");
-        ImGui::TextDisabled("is touching right now.");
+        ImGui::Spacing();
+        // Each hint is one line: the sidebar fits about 44 characters, and ImGui
+        // leaves anything longer to run off the edge rather than wrapping it.
+        ImGui::TextDisabled("yellow is what it touches now.");
         if (state.view == View::Grid) {
-            ImGui::TextDisabled("0 is open, anything else is a");
-            ImGui::TextDisabled("wall. dark grey is queued,");
-            ImGui::TextDisabled("light grey is already seen.");
+            ImGui::TextDisabled("0 open, anything else a wall.");
+            ImGui::TextDisabled("dark grey queued, light grey seen.");
         }
         ImGui::TextDisabled("space plays, arrows step.");
 
