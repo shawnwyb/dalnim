@@ -78,3 +78,38 @@ TEST_CASE("a parsed grid is always rectangular") {
     CHECK(g.width == 4);
     CHECK(g.height == 3);
 }
+
+TEST_CASE("one interval per line, start then end") {
+    const dalnim::Intervals i = dalnim::parse_intervals("0 30\n5 10\n15 20");
+    REQUIRE(i.items.size() == 3);
+    CHECK(i.items[0].start == 0);
+    CHECK(i.items[0].end == 30);
+    CHECK(i.items[2].start == 15);
+    CHECK(i.items[2].end == 20);
+}
+
+TEST_CASE("a line without two numbers is not an interval") {
+    const dalnim::Intervals i = dalnim::parse_intervals("0 30\n\n7\nnonsense\n1 2");
+    REQUIRE(i.items.size() == 2);
+    CHECK(i.items[1].start == 1);
+}
+
+TEST_CASE("a backwards interval is turned around") {
+    const dalnim::Intervals i = dalnim::parse_intervals("30 0");
+    REQUIRE(i.items.size() == 1);
+    CHECK(i.items[0].start == 0);
+    CHECK(i.items[0].end == 30);
+}
+
+TEST_CASE("extra numbers on a line are ignored") {
+    const dalnim::Intervals i = dalnim::parse_intervals("1 2 3 4");
+    REQUIRE(i.items.size() == 1);
+    CHECK(i.items[0].end == 2);
+}
+
+TEST_CASE("negative starts are kept") {
+    const dalnim::Intervals i = dalnim::parse_intervals("-5 -1");
+    REQUIRE(i.items.size() == 1);
+    CHECK(i.items[0].start == -5);
+    CHECK(i.items[0].end == -1);
+}

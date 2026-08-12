@@ -193,4 +193,30 @@ Grid parse_grid(std::string_view text) {
     }
     return grid;
 }
+
+Intervals parse_intervals(std::string_view text) {
+    Intervals out;
+    std::size_t start = 0;
+
+    while (start <= text.size()) {
+        const std::size_t newline = text.find('\n', start);
+        const std::size_t stop = newline == std::string_view::npos ? text.size() : newline;
+
+        // Two numbers make an interval. Extra numbers on the line are ignored
+        // rather than treated as a second one, so a stray digit cannot invent a
+        // meeting nobody typed.
+        const std::vector<int> numbers = parse_int_list(text.substr(start, stop - start));
+        if (numbers.size() >= 2) {
+            const int a = numbers[0];
+            const int b = numbers[1];
+            out.items.push_back(Interval{.start = a < b ? a : b, .end = a < b ? b : a});
+        }
+
+        if (newline == std::string_view::npos) {
+            break;
+        }
+        start = newline + 1;
+    }
+    return out;
+}
 }

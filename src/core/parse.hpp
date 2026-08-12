@@ -4,6 +4,7 @@
 #include "core/dp_table.hpp"
 #include "core/graph.hpp"
 #include "core/grid.hpp"
+#include "core/intervals.hpp"
 #include "core/tree.hpp"
 
 namespace dalnim {
@@ -25,4 +26,9 @@ namespace dalnim {
 
     // Two lines, the first word across the table and the second down it.
     DpTable parse_dp_table(std::string_view text);
+
+    // One interval per line, written as a start and an end. A line holding fewer
+    // than two numbers is dropped, and an end before its start is turned around,
+    // so a half-typed line cannot produce a backwards bar.
+    Intervals parse_intervals(std::string_view text);
 }

@@ -34,6 +34,7 @@ The menu is one flat list of algorithms. Each brings the picture that suits it, 
 - **linked list**: cycle detection
 - **graph**: breadth-first search (edges are undirected)
 - **table**: edit distance
+- **intervals**: meeting rooms (one start and end per line)
 
 The list is short because it is easy to grow. An algorithm is a plain function that takes its input and returns an `EventLog`. It records what it did and knows nothing about drawing or timing. Write one against a shape in `core/algos/registry.hpp`, add a line to `kAll` in `registry.cpp`, and it appears in the menu with scrubbing and captions already working.
 

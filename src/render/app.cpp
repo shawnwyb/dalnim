@@ -16,6 +16,7 @@
 #include "core/algos/registry.hpp"
 #include "core/array_layout.hpp"
 #include "core/grid_layout.hpp"
+#include "core/interval_layout.hpp"
 #include "core/parse.hpp"
 #include "core/stack_layout.hpp"
 #include "core/dp_layout.hpp"
@@ -24,6 +25,7 @@
 #include "core/tree_layout.hpp"
 #include "render/array_view.hpp"
 #include "render/grid_view.hpp"
+#include "render/interval_view.hpp"
 #include "render/stack_view.hpp"
 #include "render/dp_view.hpp"
 #include "render/graph_view.hpp"
@@ -84,6 +86,13 @@ namespace {
         int graph_start = 0;
         char dp_input[128] = "kitten\nsitting";
         char list_input[256] = "3 2 0 -4 7 9";
+        // Deliberately out of order, so the sort has something to do before the
+        // overlap check starts. Sorted input makes the first half of the run look
+        // like nothing is happening.
+        char interval_input[256] =
+            "15 20\n"
+            "0 30\n"
+            "5 10";
         int list_cycle_to = 2;
         std::size_t grid_start = 0;
         std::size_t algorithm = 0;
@@ -96,6 +105,7 @@ namespace {
         ListAnimation list_anim;
         GraphAnimation graph_anim;
         DpAnimation dp_anim;
+        IntervalAnimation interval_anim;
         double t = 0.0;
         float speed = 1.0f;
         bool playing = true;
@@ -111,6 +121,7 @@ namespace {
             case View::List: return state.list_anim.log;
             case View::Graph: return state.graph_anim.log;
             case View::Dp: return state.dp_anim.log;
+            case View::Intervals: return state.interval_anim.log;
         }
         return state.anim.log;
     }
@@ -147,6 +158,12 @@ namespace {
         if (const auto* run = std::get_if<DpAlgorithm>(&algo.run)) {
             const DpTable table = parse_dp_table(state.dp_input);
             state.dp_anim = build_dp_animation(table, (*run)(table));
+            return;
+        }
+
+        if (const auto* run = std::get_if<IntervalAlgorithm>(&algo.run)) {
+            Intervals intervals = parse_intervals(state.interval_input);
+            state.interval_anim = build_interval_animation(intervals, (*run)(intervals));
             return;
         }
 
@@ -242,6 +259,11 @@ namespace {
             ImGui::TextUnformatted("two words, one per line");
             ImGui::InputTextMultiline("##dp", state.dp_input, sizeof(state.dp_input),
                                       ImVec2(-1.0f, ImGui::GetTextLineHeight() * 3.0f));
+        } else if (state.view == View::Intervals) {
+            ImGui::TextUnformatted("start and end, one per line");
+            ImGui::InputTextMultiline("##intervals", state.interval_input,
+                                      sizeof(state.interval_input),
+                                      ImVec2(-1.0f, ImGui::GetTextLineHeight() * 7.5f));
         } else if (state.view == View::Graph) {
             ImGui::TextUnformatted("edges, one line per node");
             ImGui::InputTextMultiline("##graph", state.graph_input, sizeof(state.graph_input),
@@ -435,6 +457,9 @@ int run_app() {
                 break;
             case View::Dp:
                 draw_dp(state.dp_anim, state.t);
+                break;
+            case View::Intervals:
+                draw_intervals(state.interval_anim, state.t);
                 break;
             case View::Bars:
                 draw_array(state.values, state.anim, state.t);

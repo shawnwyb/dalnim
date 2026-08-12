@@ -12,6 +12,8 @@ add_library(dalnim_core STATIC
     tree_layout.cpp
     algos/tree_dfs.cpp
     algos/cycle_detect.cpp
+    algos/meeting_rooms.cpp
+    interval_layout.cpp
     linked_list.cpp
     graph.cpp
     dp_table.cpp
