@@ -112,6 +112,10 @@ TEST_CASE("the clock spans the earliest start to the latest end") {
     CHECK(anim.earliest == -5);
     CHECK(dalnim::interval_x_units(anim, -5) == doctest::Approx(0.0));
     CHECK(anim.span_x == doctest::Approx(45.0 * dalnim::kIntervalUnitsPerStep));
+
+    // Three rows, but the bottom one is a bar rather than a whole pitch.
+    CHECK(anim.span_y ==
+          doctest::Approx(2.0 * dalnim::kIntervalRowPitch + dalnim::kIntervalBarHeight));
 }
 
 TEST_CASE("an empty schedule lays out without spans or rows") {

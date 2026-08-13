@@ -48,7 +48,9 @@ IntervalAnimation build_interval_animation(Intervals intervals, EventLog log) {
         const int latest = std::max_element(intervals.items.begin(), intervals.items.end(),
                                             by_end)->end;
         anim.span_x = static_cast<double>(latest - anim.earliest) * kIntervalUnitsPerStep;
-        anim.span_y = static_cast<double>(count) * kIntervalRowPitch;
+        // The last row is a bar tall, not a pitch tall, so the picture ends where
+        // the bottom bar ends rather than a gap below it.
+        anim.span_y = static_cast<double>(count - 1) * kIntervalRowPitch + kIntervalBarHeight;
     }
 
     // Slot s holds this bar. A Swap names slots, not bars, exactly as on the array.

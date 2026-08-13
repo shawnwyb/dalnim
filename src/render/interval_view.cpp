@@ -11,7 +11,6 @@
 namespace dalnim {
 namespace {
     constexpr ImU32 kSeen = IM_COL32(150, 150, 150, 255);
-    constexpr ImU32 kAxis = IM_COL32(90, 90, 90, 255);
 
     // What the run is pointing at when it stops. Warm rather than green, because
     // the intervals an interval algorithm singles out are not always good news.
@@ -33,11 +32,6 @@ void draw_intervals(const IntervalAnimation& anim, double t) {
     const ComparePair* comparing = interval_compare_at(anim, t);
 
     ImDrawList* draw = ImGui::GetBackgroundDrawList();
-
-    // The clock the bars rest on, drawn first so nothing sits on top of a bar.
-    const float axis_y = camera.y(anim.span_y + kIntervalRowPitch * 0.4);
-    draw->AddLine(ImVec2(camera.x(0.0), axis_y), ImVec2(camera.x(anim.span_x), axis_y),
-                  kAxis, 1.5f);
 
     for (std::size_t bar = 0; bar < count; ++bar) {
         const Interval& item = anim.intervals.items[bar];
