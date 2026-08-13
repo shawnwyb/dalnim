@@ -6,7 +6,9 @@ add_library(dalnim_core STATIC
     algos/flood_fill.cpp
     algos/bfs.cpp
     algos/monotonic_stack.cpp
+    algos/has_duplicate.cpp
     stack_layout.cpp
+    set_layout.cpp
     replay.cpp
     tree.cpp
     tree_layout.cpp

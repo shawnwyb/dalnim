@@ -18,6 +18,7 @@
 #include "core/grid_layout.hpp"
 #include "core/interval_layout.hpp"
 #include "core/parse.hpp"
+#include "core/set_layout.hpp"
 #include "core/stack_layout.hpp"
 #include "core/dp_layout.hpp"
 #include "core/graph_layout.hpp"
@@ -26,6 +27,7 @@
 #include "render/array_view.hpp"
 #include "render/grid_view.hpp"
 #include "render/interval_view.hpp"
+#include "render/set_view.hpp"
 #include "render/stack_view.hpp"
 #include "render/dp_view.hpp"
 #include "render/graph_view.hpp"
@@ -101,6 +103,7 @@ namespace {
         ArrayAnimation anim;
         GridAnimation grid_anim;
         StackAnimation stack_anim;
+        SetAnimation set_anim;
         TreeAnimation tree_anim;
         ListAnimation list_anim;
         GraphAnimation graph_anim;
@@ -117,6 +120,7 @@ namespace {
             case View::Bars: return state.anim.log;
             case View::Grid: return state.grid_anim.log;
             case View::Stack: return state.stack_anim.log;
+            case View::Set: return state.set_anim.log;
             case View::Tree: return state.tree_anim.log;
             case View::List: return state.list_anim.log;
             case View::Graph: return state.graph_anim.log;
@@ -208,6 +212,8 @@ namespace {
         }
         if (state.view == View::Stack) {
             state.stack_anim = build_stack_animation(state.values, run(state.values));
+        } else if (state.view == View::Set) {
+            state.set_anim = build_set_animation(state.values, run(state.values));
         } else {
             state.anim = build_array_animation(state.values, run(state.values));
         }
@@ -452,6 +458,9 @@ int run_app() {
                 break;
             case View::Stack:
                 draw_stack(state.stack_anim, state.t);
+                break;
+            case View::Set:
+                draw_set(state.set_anim, state.t);
                 break;
             case View::Tree:
                 draw_tree(state.tree_anim, state.t);

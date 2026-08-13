@@ -25,6 +25,11 @@ namespace dalnim {
     inline constexpr ImU32 kLit = IM_COL32(250, 204, 21, 255);
     inline constexpr ImU32 kLitEdge = IM_COL32(255, 232, 130, 255);
 
+    // What the run is pointing at when it stops. Warm rather than green, because
+    // what an algorithm singles out is not always good news.
+    inline constexpr ImU32 kAnswer = IM_COL32(239, 118, 108, 255);
+    inline constexpr ImU32 kAnswerEdge = IM_COL32(255, 176, 168, 255);
+
     // Cameras onto the drawing area, which is whatever the sidebar does not cover.
     // Views never see the sidebar, so they cannot forget to allow for it.
     Camera fit_row_on_stage(double span_units);

@@ -11,11 +11,6 @@
 namespace dalnim {
 namespace {
     constexpr ImU32 kSeen = IM_COL32(150, 150, 150, 255);
-
-    // What the run is pointing at when it stops. Warm rather than green, because
-    // the intervals an interval algorithm singles out are not always good news.
-    constexpr ImU32 kAnswer = IM_COL32(239, 118, 108, 255);
-    constexpr ImU32 kAnswerEdge = IM_COL32(255, 176, 168, 255);
 }
 
 void draw_intervals(const IntervalAnimation& anim, double t) {

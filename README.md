@@ -29,6 +29,7 @@ The menu groups algorithms under their topic. Each brings the picture that suits
 
 - **bars**: bubble sort, selection sort
 - **stack**: next greater element
+- **set**: contains duplicate
 - **grid**: flood fill, breadth-first search
 - **tree**: depth-first walk
 - **linked list**: cycle detection

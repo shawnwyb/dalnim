@@ -17,6 +17,7 @@ add_executable(dalnim_tests
     test_flood_fill.cpp
     test_bfs.cpp
     test_stack.cpp
+    test_set.cpp
     test_tree.cpp
     test_list.cpp
     test_intervals.cpp

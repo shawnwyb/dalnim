@@ -22,12 +22,12 @@ namespace dalnim {
 
     // How a run should be pictured. Separate from the input shape, because two
     // algorithms can read the same input and still want different pictures.
-    enum class View { Bars, Grid, Stack, Tree, List, Graph, Dp, Intervals };
+    enum class View { Bars, Grid, Stack, Set, Tree, List, Graph, Dp, Intervals };
 
     // What the algorithm is about, which is what someone browsing the menu is
     // looking for. Deliberately not derived from View: flood fill is drawn on a
     // grid but is a graph problem, and the heading has to say so.
-    enum class Topic { Sorting, Stack, LinkedList, Trees, Graphs, Dp, Intervals };
+    enum class Topic { Sorting, ArraysAndHashing, Stack, LinkedList, Trees, Graphs, Dp, Intervals };
 
     const char* topic_name(Topic topic);
 

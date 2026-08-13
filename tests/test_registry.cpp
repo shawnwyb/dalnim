@@ -37,9 +37,10 @@ TEST_CASE("the registry holds every kind of algorithm") {
 
 TEST_CASE("every view in the menu has at least one algorithm") {
     for (const dalnim::View view : {dalnim::View::Bars, dalnim::View::Grid,
-                                    dalnim::View::Stack, dalnim::View::Tree,
-                                    dalnim::View::List, dalnim::View::Graph,
-                                    dalnim::View::Dp, dalnim::View::Intervals}) {
+                                    dalnim::View::Stack, dalnim::View::Set,
+                                    dalnim::View::Tree, dalnim::View::List,
+                                    dalnim::View::Graph, dalnim::View::Dp,
+                                    dalnim::View::Intervals}) {
         const bool found = std::any_of(dalnim::algorithms().begin(), dalnim::algorithms().end(),
                                        [&](const dalnim::Algorithm& a) { return a.view == view; });
         CHECK(found);
@@ -47,10 +48,10 @@ TEST_CASE("every view in the menu has at least one algorithm") {
 }
 
 TEST_CASE("every topic has a name") {
-    for (const dalnim::Topic topic : {dalnim::Topic::Sorting, dalnim::Topic::Stack,
-                                      dalnim::Topic::LinkedList, dalnim::Topic::Trees,
-                                      dalnim::Topic::Graphs, dalnim::Topic::Dp,
-                                      dalnim::Topic::Intervals}) {
+    for (const dalnim::Topic topic : {dalnim::Topic::Sorting, dalnim::Topic::ArraysAndHashing,
+                                      dalnim::Topic::Stack, dalnim::Topic::LinkedList,
+                                      dalnim::Topic::Trees, dalnim::Topic::Graphs,
+                                      dalnim::Topic::Dp, dalnim::Topic::Intervals}) {
         CHECK(std::string(dalnim::topic_name(topic)).empty() == false);
     }
 }

@@ -43,6 +43,7 @@ add_library(dalnim_render STATIC
     grid_view.cpp
     interval_view.cpp
     stack_view.cpp
+    set_view.cpp
     tree_view.cpp
     list_view.cpp
     graph_view.cpp
