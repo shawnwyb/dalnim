@@ -25,7 +25,7 @@ Pick an algorithm, type an input, and watch it run. Space plays and pauses, and 
 
 A caption names what is happening, and yellow always marks what the algorithm is touching right now.
 
-The menu is one flat list of algorithms. Each brings the picture that suits it, and the sidebar says what its input box expects:
+The menu groups algorithms under their topic. Each brings the picture that suits it, and the sidebar says what its input box expects:
 
 - **bars**: bubble sort, selection sort
 - **stack**: next greater element
@@ -36,7 +36,7 @@ The menu is one flat list of algorithms. Each brings the picture that suits it, 
 - **table**: edit distance
 - **intervals**: meeting rooms (one start and end per line)
 
-The list is short because it is easy to grow. An algorithm is a plain function that takes its input and returns an `EventLog`. It records what it did and knows nothing about drawing or timing. Write one against a shape in `core/algos/registry.hpp`, add a line to `kAll` in `registry.cpp`, and it appears in the menu with scrubbing and captions already working.
+The list is short because it is easy to grow. An algorithm is a plain function that takes its input and returns an `EventLog`. It records what it did and knows nothing about drawing or timing. Write one against a shape in `core/algos/registry.hpp`, add a line to `kAll` in `registry.cpp` beside the others of its topic, and it appears in the menu with scrubbing and captions already working.
 
 ## Acknowledgements
 

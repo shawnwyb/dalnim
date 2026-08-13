@@ -46,6 +46,30 @@ TEST_CASE("every view in the menu has at least one algorithm") {
     }
 }
 
+TEST_CASE("every topic has a name") {
+    for (const dalnim::Topic topic : {dalnim::Topic::Sorting, dalnim::Topic::Stack,
+                                      dalnim::Topic::LinkedList, dalnim::Topic::Trees,
+                                      dalnim::Topic::Graphs, dalnim::Topic::Dp,
+                                      dalnim::Topic::Intervals}) {
+        CHECK(std::string(dalnim::topic_name(topic)).empty() == false);
+    }
+}
+
+// The menu heads a run of algorithms with their topic, and knows a run has ended
+// only because the next topic differs. A topic split across two runs would print
+// its heading twice, so the registry has to keep each one whole.
+TEST_CASE("the registry keeps each topic in one unbroken run") {
+    std::vector<dalnim::Topic> started;
+    for (std::size_t i = 0; i < dalnim::algorithms().size(); ++i) {
+        const dalnim::Topic topic = dalnim::algorithms()[i].topic;
+        if (i > 0 && topic == dalnim::algorithms()[i - 1].topic) {
+            continue;
+        }
+        CHECK(std::find(started.begin(), started.end(), topic) == started.end());
+        started.push_back(topic);
+    }
+}
+
 TEST_CASE("every grid algorithm's log replays to a fully explored region") {
     const dalnim::Grid grid{.width = 3, .height = 3, .cells = std::vector<int>(9, 0)};
     for (const dalnim::Algorithm& algo : dalnim::algorithms()) {

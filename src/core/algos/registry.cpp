@@ -18,17 +18,30 @@ namespace {
     }
 
     constexpr Algorithm kAll[] = {
-        {"bubble sort", View::Bars, ArrayAlgorithm{&bubble_sort}},
-        {"selection sort", View::Bars, ArrayAlgorithm{&selection_sort}},
-        {"next greater element", View::Stack, ArrayAlgorithm{&next_greater}},
-        {"flood fill", View::Grid, GridAlgorithm{&flood_fill_with_one}},
-        {"breadth-first search", View::Grid, GridAlgorithm{&bfs}},
-        {"tree depth-first walk", View::Tree, TreeAlgorithm{&tree_dfs}},
-        {"cycle detection", View::List, ListAlgorithm{&detect_cycle}},
-        {"graph breadth-first search", View::Graph, GraphAlgorithm{&graph_bfs}},
-        {"edit distance", View::Dp, DpAlgorithm{&edit_distance}},
-        {"meeting rooms", View::Intervals, IntervalAlgorithm{&can_attend_all}},
+        {"bubble sort", Topic::Sorting, View::Bars, ArrayAlgorithm{&bubble_sort}},
+        {"selection sort", Topic::Sorting, View::Bars, ArrayAlgorithm{&selection_sort}},
+        {"next greater element", Topic::Stack, View::Stack, ArrayAlgorithm{&next_greater}},
+        {"cycle detection", Topic::LinkedList, View::List, ListAlgorithm{&detect_cycle}},
+        {"tree depth-first walk", Topic::Trees, View::Tree, TreeAlgorithm{&tree_dfs}},
+        {"flood fill", Topic::Graphs, View::Grid, GridAlgorithm{&flood_fill_with_one}},
+        {"breadth-first search", Topic::Graphs, View::Grid, GridAlgorithm{&bfs}},
+        {"graph breadth-first search", Topic::Graphs, View::Graph, GraphAlgorithm{&graph_bfs}},
+        {"edit distance", Topic::Dp, View::Dp, DpAlgorithm{&edit_distance}},
+        {"meeting rooms", Topic::Intervals, View::Intervals, IntervalAlgorithm{&can_attend_all}},
     };
+}
+
+const char* topic_name(Topic topic) {
+    switch (topic) {
+        case Topic::Sorting:    return "sorting";
+        case Topic::Stack:      return "stack";
+        case Topic::LinkedList: return "linked list";
+        case Topic::Trees:      return "trees";
+        case Topic::Graphs:     return "graphs";
+        case Topic::Dp:         return "dynamic programming";
+        case Topic::Intervals:  return "intervals";
+    }
+    return "";
 }
 
 std::span<const Algorithm> algorithms() {

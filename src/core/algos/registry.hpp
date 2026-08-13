@@ -24,13 +24,23 @@ namespace dalnim {
     // algorithms can read the same input and still want different pictures.
     enum class View { Bars, Grid, Stack, Tree, List, Graph, Dp, Intervals };
 
+    // What the algorithm is about, which is what someone browsing the menu is
+    // looking for. Deliberately not derived from View: flood fill is drawn on a
+    // grid but is a graph problem, and the heading has to say so.
+    enum class Topic { Sorting, Stack, LinkedList, Trees, Graphs, Dp, Intervals };
+
+    const char* topic_name(Topic topic);
+
     struct Algorithm {
         const char* name;
+        Topic topic;
         View view;
         std::variant<ArrayAlgorithm, GridAlgorithm, TreeAlgorithm, ListAlgorithm,
                      GraphAlgorithm, DpAlgorithm, IntervalAlgorithm> run;
     };
 
     // Everything the app can offer, in menu order. Adding one is a line in registry.cpp.
+    // Entries sharing a topic sit together, so the menu can head each run with its
+    // topic in a single pass.
     std::span<const Algorithm> algorithms();
 }

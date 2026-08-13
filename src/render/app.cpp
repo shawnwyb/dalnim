@@ -243,6 +243,13 @@ namespace {
         if (ImGui::BeginCombo("##algorithm", algorithms()[state.algorithm].name)) {
             for (std::size_t i = 0; i < algorithms().size(); ++i) {
                 const bool chosen = i == state.algorithm;
+
+                // The registry keeps a topic's algorithms together, so a topic
+                // that differs from the one above it is starting its run.
+                if (i == 0 || algorithms()[i].topic != algorithms()[i - 1].topic) {
+                    ImGui::SeparatorText(topic_name(algorithms()[i].topic));
+                }
+
                 if (ImGui::Selectable(algorithms()[i].name, chosen)) {
                     state.algorithm = i;
                     rebuild(state);
