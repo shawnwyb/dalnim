@@ -2,6 +2,8 @@
 
 Data structures and algorithms animation engine. An algorithm runs once and records what it did; the recording is then replayed at any point in time, so the whole run is scrubbable rather than only playable forwards.
 
+<img width="800" height="560" alt="output" src="https://github.com/user-attachments/assets/7af7c290-94b7-49ab-a301-db540b8d38ee" />
+
 ## Quick start
 
 Requires CMake 3.20+ and a C++20 compiler, and is tested with CMake 3.31 and Apple Clang 17 on macOS. The first configure downloads SDL3, Dear ImGui, and doctest.
